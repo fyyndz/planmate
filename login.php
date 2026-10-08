@@ -16,9 +16,6 @@
     <div class="auth-wrapper">
         <div class="auth-card">
             <div class="auth-header">
-                <div class="auth-brand-logo">
-                    <i class="fas fa-tasks"></i>
-                </div>
                 <h2>Masuk ke PlanMate</h2>
                 <p>Sistem Manajemen Tugas &amp; Aktivitas Mahasiswa</p>
             </div>
@@ -29,7 +26,7 @@
 
             <form id="loginForm">
                 <div class="form-group">
-                    <label for="identifier"><i class="fas fa-user"></i> Email atau Username</label>
+                    <label for="identifier"><i class="fas fa-user"></i> Email</label>
                     <input type="text" id="identifier" class="form-control" placeholder="Contoh: mahasiswa@student.ac.id" required>
                 </div>
 
