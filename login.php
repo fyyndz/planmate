@@ -13,43 +13,96 @@
     <script>Store.requireGuest();</script>
 </head>
 <body style="background: #0f172a;">
-    <div class="auth-wrapper">
-        <div class="auth-card">
-            <div class="auth-header">
-                <h2>Masuk ke PlanMate</h2>
-                <p>Sistem Manajemen Tugas &amp; Aktivitas Mahasiswa</p>
+    
+
+<div class="auth-wrapper">
+    <div class="auth-card">
+
+        <!-- Header -->
+        <div class="auth-header" style="text-align: center; margin-bottom: 24px;">
+            <h2 style="font-size: 28px; font-weight: 800; margin: 0 0 8px; color: #192936; letter-spacing: -0.5px;">
+                Masuk ke PlanMate
+            </h2>
+            <p style="font-size: 14px; line-height: 20px; color: #64748b; margin: 0;">
+                Sistem Manajemen Tugas &amp; Aktivitas Mahasiswa
+            </p>
+        </div>
+
+        <!-- Alert -->
+        <div id="auth-alert" style="display: none; margin-bottom: 16px;" class="alert alert-danger">
+            <span id="auth-error-msg"></span>
+        </div>
+
+        <!-- Form Login -->
+        <form id="loginForm">
+            <div class="form-group" style="margin-bottom: 16px;">
+                <label for="identifier" style="font-size: 14px; font-weight: 600; color: #334155; display: block; margin-bottom: 8px;">
+                    <i class="fas fa-user" style="margin-right: 4px;"></i>
+                    Email
+                </label>
+                <input
+                    type="email"
+                    id="identifier"
+                    class="form-control"
+                    placeholder="mahasiswa@student.ac.id"
+                    autocomplete="username"
+                    required
+                    style="height: 48px; border-radius: 8px;"
+                >
             </div>
 
-            <div id="auth-alert" style="display: none;" class="alert alert-danger">
-                <span id="auth-error-msg"></span>
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label for="password" style="font-size: 14px; font-weight: 600; color: #334155; display: block; margin-bottom: 8px;">
+                    <i class="fas fa-lock" style="margin-right: 4px;"></i>
+                    Kata Sandi
+                </label>
+                <input
+                    type="password"
+                    id="password"
+                    class="form-control"
+                    placeholder="Masukkan kata sandi"
+                    autocomplete="current-password"
+                    required
+                    style="height: 48px; border-radius: 8px;"
+                >
             </div>
 
-            <form id="loginForm">
-                <div class="form-group">
-                    <label for="identifier"><i class="fas fa-user"></i> Email</label>
-                    <input type="text" id="identifier" class="form-control" placeholder="Contoh: mahasiswa@student.ac.id" required>
-                </div>
+            <!-- Tombol Utama -->
+            <button
+                type="submit"
+                class="btn btn-primary"
+                style="width: 100%; min-height: 48px; padding: 12px; font-size: 15px; font-weight: 700; border-radius: 8px;"
+            >
+                <i class="fas fa-sign-in-alt" style="margin-right: 4px;"></i>
+                Masuk Sekarang
+            </button>
+        </form>
 
-                <div class="form-group" style="margin-bottom: 24px;">
-                    <label for="password"><i class="fas fa-lock"></i> Kata Sandi</label>
-                    <input type="password" id="password" class="form-control" placeholder="••••••••" required>
-                </div>
+        <!-- Link Daftar -->
+        <div style="margin-top: 20px; text-align: center; font-size: 13px; line-height: 20px; color: #64748b;">
+            Belum punya akun mahasiswa?
+            <a href="register.php" style="color: var(--primary); font-weight: 700; text-decoration: none; margin-left: 4px;">
+                Daftar Akun Baru
+            </a>
+        </div>
 
-                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 0.95rem;">
-                    <i class="fas fa-sign-in-alt"></i> Masuk Sekarang
-                </button>
-            </form>
-
-            <div style="margin-top: 24px; text-align: center; font-size: 0.85rem; color: var(--text-muted);">
-                Belum punya akun mahasiswa? <a href="register.php" style="color: var(--primary); font-weight: 700; text-decoration: none;">Daftar Akun Baru</a>
+        <!-- Informasi Pendukung -->
+        <div style="margin-top: 20px; padding: 12px; background: #f1f5f9; border-radius: 8px; text-align: center;">
+            <div style="font-size: 12px; line-height: 12px; font-weight: 700; color: #475569; margin-bottom: 8px;">
+                <i class="far fa-lightbulb" style="margin-right: 4px;"></i>
+                Demo Login Cepat
             </div>
 
-            <div style="margin-top: 20px; padding: 12px; background: #f1f5f9; border-radius: 8px; font-size: 0.78rem; color: #475569; text-align: center;">
-                <i class="far fa-lightbulb"></i> <strong>Demo Login Cepat:</strong><br>
-                Username: <code>mahasiswa</code> | Password: <code>password123</code>
+            <div style="font-size: 12px; line-height: 16px; color: #64748b;">
+                Username: <code>mahasiswa</code><br>
+                Password: <code>password123</code>
             </div>
         </div>
+
     </div>
+</div>
+
+
 
     <script>
         document.getElementById('loginForm').addEventListener('submit', function(e) {
