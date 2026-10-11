@@ -99,18 +99,17 @@ const Store = {
     };
     users.push(newUser);
     localStorage.setItem(this.KEYS.USERS, JSON.stringify(users));
-    this.setCurrentUser(newUser);
     return { success: true, user: newUser };
   },
 
-  loginUser(identifier, password) {
+  loginUser(email, password) {
     const users = this.getUsers();
-    const user = users.find(u => (u.email === identifier || u.username === identifier) && u.password === password);
+    const user = users.find(u => u.email === email && u.password === password);
     if (user) {
       this.setCurrentUser(user);
       return { success: true, user };
     }
-    return { success: false, message: 'Username/Email atau Password salah!' };
+    return { success: false, message: 'Email atau kata sandi salah!' };
   },
 
   updateCurrentUser(data) {

@@ -27,6 +27,14 @@
                 Sistem Manajemen Tugas &amp; Aktivitas Mahasiswa
             </p>
         </div>
+        <div id="register-success" style="display: none; margin-bottom: 16px;" class="alert alert-success">
+            Akun berhasil dibuat. Silakan masuk.
+        </div>
+        <script>
+        if (new URLSearchParams(location.search).get('registered')) {
+        document.getElementById('register-success').style.display = 'flex';
+        }
+        </script>
 
         <!-- Alert -->
         <div id="auth-alert" style="display: none; margin-bottom: 16px;" class="alert alert-danger">
@@ -84,19 +92,6 @@
             <a href="register.php" style="color: var(--primary); font-weight: 700; text-decoration: none; margin-left: 4px;">
                 Daftar Akun Baru
             </a>
-        </div>
-
-        <!-- Informasi Pendukung -->
-        <div style="margin-top: 20px; padding: 12px; background: #f1f5f9; border-radius: 8px; text-align: center;">
-            <div style="font-size: 12px; line-height: 12px; font-weight: 700; color: #475569; margin-bottom: 8px;">
-                <i class="far fa-lightbulb" style="margin-right: 4px;"></i>
-                Demo Login Cepat
-            </div>
-
-            <div style="font-size: 12px; line-height: 16px; color: #64748b;">
-                Username: <code>mahasiswa</code><br>
-                Password: <code>password123</code>
-            </div>
         </div>
 
     </div>
