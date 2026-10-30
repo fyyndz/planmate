@@ -22,6 +22,10 @@ $current_file = basename($_SERVER['PHP_SELF']);
             <i class="fas fa-clipboard-list"></i> Semua Aktivitas
         </a>
 
+        <a href="goals.php" class="sidebar-link <?php echo $current_file === 'goals.php' ? 'active' : ''; ?>">
+            <i class="fas fa-bullseye"></i> Target &amp; Goals
+        </a>
+
         <a href="deadline.php" class="sidebar-link <?php echo $current_file === 'deadline.php' ? 'active' : ''; ?>">
             <i class="fas fa-clock"></i> Deadline &amp; Prioritas
         </a>

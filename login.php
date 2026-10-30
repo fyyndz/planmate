@@ -46,15 +46,16 @@
             <div class="form-group" style="margin-bottom: 16px;">
                 <label for="identifier" style="font-size: 14px; font-weight: 600; color: #334155; display: block; margin-bottom: 8px;">
                     <i class="fas fa-user" style="margin-right: 4px;"></i>
-                    Email
+                    Email atau Username / NIM
                 </label>
                 <input
-                    type="email"
+                    type="text"
                     id="identifier"
                     class="form-control"
-                    placeholder="mahasiswa@student.ac.id"
+                    placeholder="mahasiswa@student.ac.id atau 24051204001"
                     autocomplete="username"
                     required
+                    autofocus
                     style="height: 48px; border-radius: 8px;"
                 >
             </div>

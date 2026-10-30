@@ -82,6 +82,7 @@
                 const alertElem = document.getElementById('auth-alert');
                 document.getElementById('auth-error-msg').textContent = res.message;
                 alertElem.style.display = 'flex';
+                alertElem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }
         });
     </script>

@@ -14,7 +14,7 @@
 </head>
 <body>
     <div class="app-shell">
-        <?php include_once __DIR__ . '/includes/sidebar.php'; ?>
+        <?php include_once __DIR__ . '/sidebar.php'; ?>
 
         <main class="app-main-workspace">
             <div class="top-header">

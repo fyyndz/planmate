@@ -25,7 +25,7 @@
 </head>
 <body>
     <div class="app-shell">
-        <?php include_once __DIR__ . '/includes/sidebar.php'; ?>
+        <?php include_once __DIR__ . '/sidebar.php'; ?>
 
         <main class="app-main-workspace">
             <div class="top-header">
@@ -194,6 +194,7 @@
                     <td>${statusBadge}</td>
                     <td style="text-align: right;">
                         <div style="display:flex; gap:6px; justify-content:flex-end;">
+                            <a href="goals.php?action=create&activity_id=${act.id}" class="btn btn-secondary btn-icon btn-sm" title="Buat Target / Goals dari Aktivitas ini" style="color:#2563eb;"><i class="fas fa-bullseye"></i></a>
                             <button onclick="markDone(${act.id})" class="btn btn-secondary btn-icon btn-sm" style="${doneBtnStyle}" title="${isDone ? 'Aktivitas Selesai' : 'Tandai Sudah Selesai'}"><i class="fas fa-check-circle"></i></button>
                             <button onclick="editAct(${act.id})" class="btn btn-secondary btn-icon btn-sm" title="Edit"><i class="fas fa-edit"></i></button>
                             <button onclick="deleteAct(${act.id})" class="btn btn-secondary btn-icon btn-sm" style="color:#ef4444;" title="Hapus"><i class="fas fa-trash-alt"></i></button>
