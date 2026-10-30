@@ -349,9 +349,68 @@ const Store = {
   },
 
   logout() {
-    if (confirm('Apakah Anda yakin ingin keluar dari akun PlanMate?')) {
-      localStorage.removeItem(this.KEYS.CURRENT_USER);
-      window.location.href = 'login.php';
+    this.showConfirm({
+      title: 'Keluar dari Akun?',
+      message: 'Apakah Anda yakin ingin keluar dari sesi akun PlanMate saat ini?',
+      icon: 'fas fa-sign-out-alt',
+      confirmText: 'Ya, Keluar',
+      cancelText: 'Batal',
+      isDanger: true,
+      onConfirm: () => {
+        localStorage.removeItem(this.KEYS.CURRENT_USER);
+        window.location.href = 'login.php';
+      }
+    });
+  },
+
+  showConfirm({ title, message, icon, confirmText = 'Lanjutkan', cancelText = 'Batal', isDanger = false, onConfirm }) {
+    let overlay = document.getElementById('pm-confirm-modal');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'pm-confirm-modal';
+      overlay.className = 'pm-modal-overlay';
+      overlay.onclick = (e) => {
+        if (e.target === overlay) Store.closeConfirm();
+      };
+      document.body.appendChild(overlay);
+    }
+
+    const iconHtml = isDanger
+      ? `<div class="pm-confirm-icon-box pm-confirm-icon-danger"><i class="${icon || 'fas fa-trash-alt'}"></i></div>`
+      : `<div class="pm-confirm-icon-box pm-confirm-icon-warning"><i class="${icon || 'fas fa-exclamation-triangle'}"></i></div>`;
+
+    overlay.innerHTML = `
+      <div class="pm-modal-card pm-modal-sm" role="dialog" aria-modal="true" aria-labelledby="pm-confirm-title">
+        <div class="pm-modal-header" style="border-bottom: none; padding-bottom: 0;">
+          ${iconHtml}
+          <button type="button" class="pm-modal-close" onclick="Store.closeConfirm()" aria-label="Tutup">&times;</button>
+        </div>
+        <div class="pm-modal-body" style="padding-top: 0; padding-bottom: 8px;">
+          <h3 id="pm-confirm-title" style="font-size: 1.12rem; font-weight: 800; color: #182531; margin-bottom: 6px;">${title}</h3>
+          <p style="font-size: 0.86rem; color: #64748b; line-height: 1.5; margin: 0;">${message}</p>
+        </div>
+        <div class="pm-modal-footer" style="background: transparent; border-top: none; padding-top: 10px;">
+          <button type="button" class="btn btn-secondary" onclick="Store.closeConfirm()">${cancelText}</button>
+          <button type="button" class="btn ${isDanger ? 'btn-danger' : 'btn-primary'}" id="pm-confirm-ok-btn">${confirmText}</button>
+        </div>
+      </div>
+    `;
+
+    overlay.style.display = 'flex';
+
+    const okBtn = document.getElementById('pm-confirm-ok-btn');
+    okBtn.focus();
+    okBtn.onclick = () => {
+      Store.closeConfirm();
+      if (typeof onConfirm === 'function') onConfirm();
+    };
+  },
+
+  closeConfirm() {
+    const overlay = document.getElementById('pm-confirm-modal');
+    if (overlay) {
+      overlay.style.display = 'none';
+      overlay.innerHTML = '';
     }
   },
 
@@ -643,3 +702,26 @@ const Store = {
 
 // Eksekusi inisialisasi awal
 Store.init();
+
+// Global handler untuk menutup modal dengan tombol Escape dan klik overlay
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' || e.key === 'Esc') {
+    // Tutup confirm modal jika terbuka
+    Store.closeConfirm();
+
+    // Tutup semua modal overlay yang sedang terbuka
+    document.querySelectorAll('.pm-modal-overlay').forEach(modal => {
+      if (modal.style.display === 'flex' || modal.classList.contains('active')) {
+        modal.style.display = 'none';
+        modal.classList.remove('active');
+      }
+    });
+
+    // Panggil close function spesifik bila ada
+    if (typeof closeActModal === 'function') closeActModal();
+    if (typeof closeGoalModal === 'function') closeGoalModal();
+    if (typeof closeProgressModal === 'function') closeProgressModal();
+    if (typeof closeDetailGoalModal === 'function') closeDetailGoalModal();
+    if (typeof closeDetailModal === 'function') closeDetailModal();
+  }
+});

@@ -162,112 +162,111 @@
     </div>
 
     <!-- Modal Form Create / Edit Goal -->
-    <div id="goalModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15,23,42,0.65); backdrop-filter: blur(4px); z-index: 200; align-items: center; justify-content: center; padding: 20px;">
-        <div class="card-section" style="width: 100%; max-width: 600px; margin: 0; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);">
-            <div class="card-header-flex" style="margin-bottom: 20px;">
-                <h3 style="font-size: 1.2rem; font-weight: 800; color: var(--text-dark);" id="goalModalTitle">
-                    <i class="fas fa-bullseye" style="color: var(--primary-accent-hover);"></i> Buat Target Baru
-                </h3>
-                <button onclick="closeGoalModal()" style="background: none; border: none; font-size: 1.3rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+    <div id="goalModal" class="pm-modal-overlay">
+        <div class="pm-modal-card pm-modal-lg" role="dialog" aria-modal="true" aria-labelledby="goalModalTitle">
+            <div class="pm-modal-header">
+                <div class="pm-modal-title-group">
+                    <h3 class="pm-modal-title" id="goalModalTitle">
+                        <i class="fas fa-bullseye" style="color: var(--primary-accent-hover);"></i> Buat Target Baru
+                    </h3>
+                    <p class="pm-modal-subtitle">Tetapkan sasaran pencapaian, tenggat waktu, dan bagi ke tahapan kecil.</p>
+                </div>
+                <button type="button" onclick="closeGoalModal()" class="pm-modal-close" aria-label="Tutup">&times;</button>
             </div>
             
             <form id="goalForm">
-                <input type="hidden" id="goalId">
+                <div class="pm-modal-body">
+                    <input type="hidden" id="goalId">
 
-                <div class="form-group" style="margin-bottom: 16px;">
-                    <label for="goalJudul" style="font-weight: 700; font-size: 0.88rem; display: block; margin-bottom: 6px;">
-                        Nama / Judul Target <span style="color: #ef4444;">*</span>
-                    </label>
-                    <input type="text" id="goalJudul" class="form-control" required placeholder="Contoh: Menyelesaikan Laporan Praktikum Modul 1-4">
-                </div>
-
-                <div class="form-group" style="margin-bottom: 16px;">
-                    <label for="goalAktivitasId" style="font-weight: 700; font-size: 0.88rem; display: block; margin-bottom: 6px;">
-                        Hubungkan dengan Aktivitas Terdaftar (Opsional)
-                    </label>
-                    <select id="goalAktivitasId" class="form-select">
-                        <option value="">-- Target Mandiri (Tanpa Aktivitas) --</option>
-                    </select>
-                    <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 4px;">
-                        Pilih aktivitas untuk memantau progres tugas tersebut secara terperinci.
-                    </span>
-                </div>
-
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
-                    <div class="form-group">
-                        <label for="goalDeadline" style="font-weight: 700; font-size: 0.88rem; display: block; margin-bottom: 6px;">
-                            Target Selesai (Deadline)
-                        </label>
-                        <input type="date" id="goalDeadline" class="form-control">
+                    <div class="pm-form-group">
+                        <label for="goalJudul" class="pm-label">Nama / Judul Target <span class="required">*</span></label>
+                        <input type="text" id="goalJudul" class="pm-input" required placeholder="Contoh: Menyelesaikan Laporan Praktikum Modul 1-4">
                     </div>
-                    <div class="form-group">
-                        <label for="goalProgres" style="font-weight: 700; font-size: 0.88rem; display: block; margin-bottom: 6px;">
-                            Progres Saat Ini (%)
-                        </label>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <input type="range" id="goalProgresRange" min="0" max="100" value="0" class="form-range" style="flex: 1;" oninput="syncProgressInputs('range')">
-                            <span id="goalProgresText" style="font-weight: 800; font-size: 0.95rem; width: 44px; text-align: right;">0%</span>
-                        </div>
+
+                    <div class="pm-form-group">
+                        <label for="goalAktivitasId" class="pm-label">Hubungkan dengan Aktivitas Terdaftar (Opsional)</label>
+                        <select id="goalAktivitasId" class="pm-select">
+                            <option value="">-- Target Mandiri (Tanpa Aktivitas) --</option>
+                        </select>
+                        <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 4px;">
+                            Pilih aktivitas untuk memantau progres tugas tersebut secara terperinci.
+                        </span>
                     </div>
-                </div>
 
-                <div class="form-group" style="margin-bottom: 20px;">
-                    <label for="goalDeskripsi" style="font-weight: 700; font-size: 0.88rem; display: block; margin-bottom: 6px;">
-                        Deskripsi &amp; Sasaran
-                    </label>
-                    <textarea id="goalDeskripsi" class="form-control" rows="2" placeholder="Catatan atau sasaran spesifik dari target ini..."></textarea>
-                </div>
-
-                <!-- Sub-targets / Tahapan Kecil Builder -->
-                <div style="margin-bottom: 24px; padding: 16px; background: #faf8f5; border-radius: 12px; border: 1px solid var(--border-color);">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;" class="pm-form-group">
                         <div>
-                            <strong style="font-size: 0.88rem; color: var(--text-dark); display: block;">Tahapan &amp; Milestone Target</strong>
-                            <span style="font-size: 0.75rem; color: var(--text-muted);">Bagi target menjadi langkah-langkah kecil untuk memantau progres secara otomatis.</span>
+                            <label for="goalDeadline" class="pm-label"><i class="far fa-calendar-alt"></i> Target Selesai (Deadline)</label>
+                            <input type="date" id="goalDeadline" class="pm-input">
                         </div>
-                        <button type="button" onclick="addSubtargetRow()" class="btn btn-secondary btn-sm" style="font-weight: 700;">
-                            <i class="fas fa-plus"></i> Tambah Tahap
-                        </button>
+                        <div>
+                            <label for="goalProgresRange" class="pm-label"><i class="fas fa-chart-line"></i> Progres Saat Ini (%)</label>
+                            <div style="display: flex; align-items: center; gap: 12px; height: 42px;">
+                                <input type="range" id="goalProgresRange" min="0" max="100" value="0" style="flex: 1; accent-color: var(--primary-accent-hover);" oninput="syncProgressInputs('range')">
+                                <span id="goalProgresText" style="font-weight: 800; font-size: 0.95rem; width: 44px; text-align: right; color: var(--text-dark);">0%</span>
+                            </div>
+                        </div>
                     </div>
-                    <div id="subtargets-builder-list" style="display: flex; flex-direction: column; gap: 8px;">
-                        <!-- Subtarget input rows -->
+
+                    <div class="pm-form-group">
+                        <label for="goalDeskripsi" class="pm-label">Deskripsi &amp; Sasaran</label>
+                        <textarea id="goalDeskripsi" class="pm-textarea" rows="2" placeholder="Catatan atau sasaran spesifik dari target ini..."></textarea>
+                    </div>
+
+                    <!-- Sub-targets / Tahapan Kecil Builder -->
+                    <div style="padding: 16px; background: #faf8f5; border-radius: 12px; border: 1px solid var(--border-color);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <div>
+                                <strong style="font-size: 0.88rem; color: var(--text-dark); display: block;">Tahapan &amp; Milestone Target</strong>
+                                <span style="font-size: 0.75rem; color: var(--text-muted);">Bagi target menjadi langkah-langkah kecil untuk memantau progres secara otomatis.</span>
+                            </div>
+                            <button type="button" onclick="addSubtargetRow()" class="btn btn-secondary btn-sm" style="font-weight: 700;">
+                                <i class="fas fa-plus"></i> Tambah Tahap
+                            </button>
+                        </div>
+                        <div id="subtargets-builder-list" style="display: flex; flex-direction: column; gap: 8px;">
+                            <!-- Subtarget input rows -->
+                        </div>
                     </div>
                 </div>
 
-                <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <div class="pm-modal-footer">
                     <button type="button" onclick="closeGoalModal()" class="btn btn-secondary">Batal</button>
-                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Simpan Target</button>
+                    <button type="submit" class="btn btn-primary" id="btnGoalSubmit"><i class="fas fa-save"></i> Simpan Target</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- Modal Quick Update Progres -->
-    <div id="progressModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15,23,42,0.65); backdrop-filter: blur(4px); z-index: 210; align-items: center; justify-content: center; padding: 20px;">
-        <div class="card-section" style="width: 100%; max-width: 440px; margin: 0; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);">
-            <div class="card-header-flex" style="margin-bottom: 16px;">
-                <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text-dark);">
-                    <i class="fas fa-tasks" style="color: var(--primary-accent-hover);"></i> Perbarui Progres Target
-                </h3>
-                <button onclick="closeProgressModal()" style="background: none; border: none; font-size: 1.3rem; cursor: pointer; color: var(--text-muted);">&times;</button>
-            </div>
-            <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 20px;" id="quick-goal-title">
-                Target Name
-            </p>
-            <input type="hidden" id="quickGoalId">
-            <div style="margin-bottom: 24px;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: 800; font-size: 1.1rem;">
-                    <span>Persentase Capaian</span>
-                    <span id="quickProgressVal" style="color: var(--primary-accent-hover);">50%</span>
+    <div id="progressModal" class="pm-modal-overlay">
+        <div class="pm-modal-card pm-modal-sm" role="dialog" aria-modal="true" aria-labelledby="quickModalTitle">
+            <div class="pm-modal-header">
+                <div class="pm-modal-title-group">
+                    <h3 class="pm-modal-title" id="quickModalTitle">
+                        <i class="fas fa-tasks" style="color: var(--primary-accent-hover);"></i> Perbarui Progres Target
+                    </h3>
+                    <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 320px;" id="quick-goal-title">
+                        Target Name
+                    </p>
                 </div>
-                <input type="range" id="quickProgressSlider" min="0" max="100" value="50" style="width: 100%; height: 8px;" oninput="document.getElementById('quickProgressVal').textContent = this.value + '%'">
-                <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">
-                    <span>0% (Belum Dimulai)</span>
-                    <span>50%</span>
-                    <span>100% (Tuntas)</span>
+                <button type="button" onclick="closeProgressModal()" class="pm-modal-close" aria-label="Tutup">&times;</button>
+            </div>
+            <div class="pm-modal-body">
+                <input type="hidden" id="quickGoalId">
+                <div style="margin-bottom: 12px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: 800; font-size: 1.1rem;">
+                        <span style="font-size: 0.9rem; color: #475569;">Persentase Capaian</span>
+                        <span id="quickProgressVal" style="color: var(--primary-accent-hover);">50%</span>
+                    </div>
+                    <input type="range" id="quickProgressSlider" min="0" max="100" value="50" style="width: 100%; height: 8px; accent-color: var(--primary-accent-hover);" oninput="document.getElementById('quickProgressVal').textContent = this.value + '%'">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-top: 6px;">
+                        <span>0% (Belum Dimulai)</span>
+                        <span>50%</span>
+                        <span>100% (Tuntas)</span>
+                    </div>
                 </div>
             </div>
-            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+            <div class="pm-modal-footer">
                 <button type="button" onclick="closeProgressModal()" class="btn btn-secondary">Batal</button>
                 <button type="button" onclick="saveQuickProgress()" class="btn btn-primary"><i class="fas fa-check"></i> Simpan Progres</button>
             </div>
@@ -275,18 +274,23 @@
     </div>
 
     <!-- Modal View Detail Goal -->
-    <div id="detailGoalModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15,23,42,0.65); backdrop-filter: blur(4px); z-index: 220; align-items: center; justify-content: center; padding: 20px;">
-        <div class="card-section" style="width: 100%; max-width: 580px; margin: 0; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);">
-            <div class="card-header-flex" style="margin-bottom: 16px;">
-                <h3 style="font-size: 1.2rem; font-weight: 800; color: var(--text-dark);" id="detailGoalTitle">Detail Target</h3>
-                <button onclick="closeDetailGoalModal()" style="background: none; border: none; font-size: 1.3rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+    <div id="detailGoalModal" class="pm-modal-overlay">
+        <div class="pm-modal-card pm-modal-md" role="dialog" aria-modal="true" aria-labelledby="detailGoalTitle">
+            <div class="pm-modal-header">
+                <div class="pm-modal-title-group">
+                    <h3 class="pm-modal-title" id="detailGoalTitle">
+                        <i class="fas fa-bullseye" style="color: var(--primary-accent-hover);"></i> Detail Target
+                    </h3>
+                    <p class="pm-modal-subtitle">Informasi capaian dan penyelesaian tahapan kecil target.</p>
+                </div>
+                <button type="button" onclick="closeDetailGoalModal()" class="pm-modal-close" aria-label="Tutup">&times;</button>
             </div>
             
-            <div id="detailGoalBody">
+            <div class="pm-modal-body" id="detailGoalBody">
                 <!-- Dynamically loaded -->
             </div>
 
-            <div style="display: flex; justify-content: flex-end; margin-top: 24px;">
+            <div class="pm-modal-footer">
                 <button type="button" onclick="closeDetailGoalModal()" class="btn btn-secondary">Tutup</button>
             </div>
         </div>
@@ -636,10 +640,18 @@
         function deleteGoalItem(id) {
             const goal = Store.getGoal(id);
             if (!goal) return;
-            if (confirm(`Apakah Anda yakin ingin menghapus target "${goal.judul}"? Tindakan ini tidak dapat dibatalkan.`)) {
-                Store.deleteGoal(id);
-                renderGoals();
-            }
+            Store.showConfirm({
+                title: 'Hapus Target / Goal?',
+                message: `Apakah Anda yakin ingin menghapus target "${escapeHtml(goal.judul)}"? Seluruh milestone tahapan yang telah dicatat akan dihapus secara permanen.`,
+                icon: 'fas fa-trash-alt',
+                confirmText: 'Ya, Hapus',
+                cancelText: 'Batal',
+                isDanger: true,
+                onConfirm: () => {
+                    Store.deleteGoal(id);
+                    renderGoals();
+                }
+            });
         }
 
         function viewGoalDetail(id) {
@@ -727,6 +739,18 @@
         function closeDetailGoalModal() {
             document.getElementById('detailGoalModal').style.display = 'none';
         }
+
+        // Overlay click to close
+        ['goalModal', 'progressModal', 'detailGoalModal'].forEach(mId => {
+            const el = document.getElementById(mId);
+            if (el) {
+                el.addEventListener('click', (e) => {
+                    if (e.target === el) {
+                        el.style.display = 'none';
+                    }
+                });
+            }
+        });
 
         function escapeHtml(str) {
             return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');

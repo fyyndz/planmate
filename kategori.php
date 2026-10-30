@@ -141,11 +141,21 @@
         }
 
         function deleteCat(id) {
-            if (confirm('Apakah Anda yakin ingin menghapus kategori ini?')) {
-                Store.deleteCategory(id);
-                resetCatForm();
-                renderCategoryTable();
-            }
+            const cat = Store.getCategories().find(item => Number(item.id) === Number(id));
+            const catName = cat ? cat.name : 'kategori ini';
+            Store.showConfirm({
+                title: 'Hapus Kategori?',
+                message: `Apakah Anda yakin ingin menghapus kategori "${escapeHtml(catName)}"? Aktivitas yang terhubung dengan kategori ini mungkin perlu disesuaikan kembali.`,
+                icon: 'fas fa-trash-alt',
+                confirmText: 'Ya, Hapus',
+                cancelText: 'Batal',
+                isDanger: true,
+                onConfirm: () => {
+                    Store.deleteCategory(id);
+                    resetCatForm();
+                    renderCategoryTable();
+                }
+            });
         }
 
         document.getElementById('catForm').addEventListener('submit', (e) => {
