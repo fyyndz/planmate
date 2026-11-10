@@ -358,7 +358,7 @@ const Store = {
       isDanger: true,
       onConfirm: () => {
         localStorage.removeItem(this.KEYS.CURRENT_USER);
-        window.location.href = 'login.php';
+        window.location.href = '/login';
       }
     });
   },
@@ -416,13 +416,13 @@ const Store = {
 
   requireAuth() {
     if (!this.getCurrentUser()) {
-      window.location.href = 'login.php';
+      window.location.href = '/login';
     }
   },
 
   requireGuest() {
     if (this.getCurrentUser()) {
-      window.location.href = 'dashboard.php';
+      window.location.href = '/dashboard';
     }
   },
 

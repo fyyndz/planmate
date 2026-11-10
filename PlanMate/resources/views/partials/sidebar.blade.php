@@ -1,9 +1,5 @@
-<?php
-$current_file = basename($_SERVER['PHP_SELF']);
-?>
 <aside class="app-sidebar">
-    <!-- Brand Logo -->
-    <a href="dashboard.php" class="sidebar-logo">
+    <a href="/dashboard" class="sidebar-logo">
         <div class="sidebar-logo-icon">
             <i class="fas fa-check"></i>
         </div>
@@ -12,35 +8,32 @@ $current_file = basename($_SERVER['PHP_SELF']);
 
     <div class="sidebar-section-label">RUANG KERJA</div>
 
-    <!-- Navigation Links for Each Feature File -->
     <nav class="sidebar-nav">
-        <a href="dashboard.php" class="sidebar-link <?php echo ($current_file === 'dashboard.php' || $current_file === 'index.php') ? 'active' : ''; ?>">
+        <a href="/dashboard" class="sidebar-link {{ request()->is('dashboard') ? 'active' : '' }}">
             <i class="fas fa-th-large"></i> Dashboard
         </a>
 
-        <a href="aktivitas.php" class="sidebar-link <?php echo $current_file === 'aktivitas.php' ? 'active' : ''; ?>">
+        <a href="/aktivitas" class="sidebar-link {{ request()->is('aktivitas') ? 'active' : '' }}">
             <i class="fas fa-clipboard-list"></i> Semua Aktivitas
         </a>
 
-        <a href="goals.php" class="sidebar-link <?php echo $current_file === 'goals.php' ? 'active' : ''; ?>">
+        <a href="/goals" class="sidebar-link {{ request()->is('goals') ? 'active' : '' }}">
             <i class="fas fa-bullseye"></i> Target &amp; Goals
         </a>
 
-        <a href="kategori.php" class="sidebar-link <?php echo $current_file === 'kategori.php' ? 'active' : ''; ?>">
+        <a href="/kategori" class="sidebar-link {{ request()->is('kategori') ? 'active' : '' }}">
             <i class="fas fa-tags"></i> Kategori &amp; Status
         </a>
 
-        <a href="profil.php" class="sidebar-link <?php echo $current_file === 'profil.php' ? 'active' : ''; ?>">
+        <a href="/profil" class="sidebar-link {{ request()->is('profil') ? 'active' : '' }}">
             <i class="fas fa-user-circle"></i> Profil Saya
         </a>
     </nav>
 
-    <!-- Sidebar Add Activity Green Button -->
-    <a href="aktivitas.php?action=create" class="sidebar-btn-add">
+    <a href="/aktivitas?action=create" class="sidebar-btn-add">
         <i class="fas fa-plus"></i> Tambah aktivitas
     </a>
 
-    <!-- Sidebar User Footer -->
     <div class="sidebar-user-footer">
         <div class="sidebar-user-info">
             <div class="sidebar-avatar" id="sidebar-avatar">RA</div>

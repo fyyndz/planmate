@@ -82,7 +82,7 @@
 </head>
 <body>
     <div class="app-shell">
-        <?php include_once __DIR__ . '/sidebar.php'; ?>
+        @include('partials.sidebar')
 
         <main class="app-main-workspace">
             <!-- Top Breadcrumb -->
@@ -424,7 +424,7 @@
                 // Linked activity badge
                 let linkBadge = `<span style="font-size: 0.75rem; font-weight: 700; background: #f8fafc; color: #64748b; padding: 3px 8px; border-radius: 6px; border: 1px solid #e2e8f0;"><i class="fas fa-user"></i> Mandiri</span>`;
                 if (goal.aktivitas) {
-                    linkBadge = `<a href="aktivitas.php?highlight=${goal.aktivitas.id}" style="text-decoration:none; font-size: 0.75rem; font-weight: 700; background: #eff6ff; color: #2563eb; padding: 3px 8px; border-radius: 6px; border: 1px solid #bfdbfe; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block;" title="Aktivitas: ${escapeHtml(goal.aktivitas.judul)}"><i class="fas fa-link"></i> ${escapeHtml(goal.aktivitas.judul)}</a>`;
+                    linkBadge = `<a href="/aktivitas?highlight=${goal.aktivitas.id}" style="text-decoration:none; font-size: 0.75rem; font-weight: 700; background: #eff6ff; color: #2563eb; padding: 3px 8px; border-radius: 6px; border: 1px solid #bfdbfe; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block;" title="Aktivitas: ${escapeHtml(goal.aktivitas.judul)}"><i class="fas fa-link"></i> ${escapeHtml(goal.aktivitas.judul)}</a>`;
                 }
 
                 card.innerHTML = `

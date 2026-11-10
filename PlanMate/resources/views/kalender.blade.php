@@ -14,7 +14,7 @@
 </head>
 <body>
     <div class="app-shell">
-        <?php include_once __DIR__ . '/sidebar.php'; ?>
+       @include('partials.sidebar')
 
         <main class="app-main-workspace">
             <div class="top-header">
@@ -122,7 +122,7 @@
 
                     const ev = document.createElement('a');
                     ev.className = `cal-event ${isDone ? 'cal-event-done' : ''}`;
-                    ev.href = `aktivitas.php?highlight=${act.id}`;
+                    ev.href = `/aktivitas?highlight=${act.id}`;
                     ev.title = `${act.judul} (${jamStr}) ${isDone ? '[Selesai]' : ''}`;
                     
                     if (isDone) {

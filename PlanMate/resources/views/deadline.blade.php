@@ -14,7 +14,7 @@
 </head>
 <body>
     <div class="app-shell">
-        <?php include_once __DIR__ . '/sidebar.php'; ?>
+       @include('partials.sidebar')
 
         <main class="app-main-workspace">
             <div class="top-header">
@@ -119,7 +119,7 @@
                     <td>${urgencyTag}</td>
                     <td>${prioBadge}</td>
                     <td style="text-align: right;">
-                        <a href="aktivitas.php" class="btn btn-secondary btn-sm"><i class="fas fa-edit"></i> Kelola Tugas</a>
+                        <a href="/aktivitas" class="btn btn-secondary btn-sm"><i class="fas fa-edit"></i> Kelola Tugas</a>
                     </td>
                 `;
                 tbody.appendChild(tr);
