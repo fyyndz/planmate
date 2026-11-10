@@ -8,8 +8,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/style.css">
-    <script src="assets/js/store.js"></script>
+    <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
+    <script src="{{ asset('assets/js/store.js') }}"></script>
     <script>Store.requireGuest();</script>
 </head>
 <body style="background: #0f172a;">
@@ -34,8 +34,8 @@
  
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                     <div class="form-group" style="margin: 0;">
-                        <label for="username" style="display: block; margin-bottom: 8px; font-size: 16px;"><i class="fas fa-user"></i> Username / NIM</label>
-                        <input type="text" id="username" class="form-control" placeholder="24051204001" autocomplete="username" required>
+                        <label for="username" style="display: block; margin-bottom: 8px; font-size: 16px;"><i class="fas fa-user"></i> Username</label>
+                        <input type="text" id="username" class="form-control" placeholder="Contoh: budisantoso" autocomplete="username" required>
                     </div>
                     <div class="form-group" style="margin: 0;">
                         <label for="jurusan" style="display: block; margin-bottom: 8px; font-size: 16px;"><i class="fas fa-graduation-cap"></i> Jurusan</label>

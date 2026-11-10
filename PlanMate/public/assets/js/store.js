@@ -102,6 +102,10 @@ const Store = {
         bio: 'Semangat belajar & mengerjakan tugas perkuliahan!'
       }];
       localStorage.setItem(this.KEYS.USERS, JSON.stringify(defaultUsers));
+      // Inisialisasi Current User awal HANYA pada setup pertama database baru
+      if (!localStorage.getItem(this.KEYS.CURRENT_USER)) {
+        localStorage.setItem(this.KEYS.CURRENT_USER, JSON.stringify(defaultUsers[0]));
+      }
     } else {
       // Auto-migrate: pastikan semua user tersimpan dengan password ter-hash
       try {
@@ -252,7 +256,7 @@ const Store = {
       return { success: false, message: 'Nama lengkap wajib diisi!' };
     }
     if (!data.username || !data.username.trim()) {
-      return { success: false, message: 'Username / NIM wajib diisi!' };
+      return { success: false, message: 'Username wajib diisi!' };
     }
     if (!data.jurusan || !data.jurusan.trim()) {
       return { success: false, message: 'Jurusan wajib diisi!' };
@@ -277,7 +281,7 @@ const Store = {
       return { success: false, message: 'Email sudah terdaftar! Silakan gunakan email lain atau masuk.' };
     }
     if (users.some(u => (u.username || '').toLowerCase() === cleanUsername)) {
-      return { success: false, message: 'Username / NIM sudah digunakan! Silakan gunakan yang lain.' };
+      return { success: false, message: 'Username sudah digunakan! Silakan gunakan yang lain.' };
     }
 
     const newUser = {
@@ -297,7 +301,7 @@ const Store = {
 
   loginUser(identifier, password) {
     if (!identifier || !identifier.trim()) {
-      return { success: false, message: 'Silakan masukkan email atau username/NIM!' };
+      return { success: false, message: 'Silakan masukkan email atau username!' };
     }
     if (!password) {
       return { success: false, message: 'Silakan masukkan kata sandi Anda!' };
@@ -307,7 +311,7 @@ const Store = {
     const hashedInput = this.hashPassword(password);
     const users = this.getUsers();
 
-    // Cari user berdasarkan email ATAU username/NIM
+    // Cari user berdasarkan email ATAU username
     const user = users.find(u => {
       const uEmail = (u.email || '').toLowerCase();
       const uUser = (u.username || '').toLowerCase();

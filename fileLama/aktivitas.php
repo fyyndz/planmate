@@ -8,8 +8,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/style.css">
-    <script src="assets/js/store.js"></script>
+<?php
+$assetPrefix = file_exists(__DIR__ . '/public/assets') ? 'public/assets' : 'assets';
+?>
+    <link rel="stylesheet" href="<?php echo $assetPrefix; ?>/css/style.css">
+    <script src="<?php echo $assetPrefix; ?>/js/store.js"></script>
     <script>Store.requireAuth();</script>
     <style>
         @keyframes rowPulse {
@@ -25,7 +28,41 @@
 </head>
 <body>
     <div class="app-shell">
-        <?php include_once __DIR__ . '/sidebar.php'; ?>
+        <?php
+        if (file_exists(__DIR__ . '/sidebar.php')) {
+            include_once __DIR__ . '/sidebar.php';
+        } else {
+        ?>
+        <aside class="app-sidebar">
+            <a href="/dashboard" class="sidebar-logo">
+                <div class="sidebar-logo-icon"><i class="fas fa-check"></i></div>
+                planmate<span>.</span>
+            </a>
+            <div class="sidebar-section-label">RUANG KERJA</div>
+            <nav class="sidebar-nav">
+                <a href="/dashboard" class="sidebar-link"><i class="fas fa-th-large"></i> Dashboard</a>
+                <a href="/aktivitas" class="sidebar-link active"><i class="fas fa-clipboard-list"></i> Semua Aktivitas</a>
+                <a href="/goals" class="sidebar-link"><i class="fas fa-bullseye"></i> Target &amp; Goals</a>
+                <a href="/kategori" class="sidebar-link"><i class="fas fa-tags"></i> Kategori &amp; Status</a>
+                <a href="/profil" class="sidebar-link"><i class="fas fa-user-circle"></i> Profil Saya</a>
+            </nav>
+            <a href="/aktivitas?action=create" class="sidebar-btn-add">
+                <i class="fas fa-plus"></i> Tambah aktivitas
+            </a>
+            <div class="sidebar-user-footer">
+                <div class="sidebar-user-info">
+                    <div class="sidebar-avatar" id="sidebar-avatar">RA</div>
+                    <div>
+                        <div class="sidebar-user-name" id="sidebar-user-name">Mahasiswa</div>
+                        <div class="sidebar-user-role" id="sidebar-user-role">Mahasiswa</div>
+                    </div>
+                </div>
+                <button onclick="Store.logout()" class="sidebar-logout-btn" title="Keluar (Logout)">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+        </aside>
+        <?php } ?>
 
         <main class="app-main-workspace">
             <div class="top-header">
