@@ -362,7 +362,9 @@ const Store = {
       isDanger: true,
       onConfirm: () => {
         localStorage.removeItem(this.KEYS.CURRENT_USER);
-        window.location.href = '/login';
+        // Logout sungguhan lewat server (form tersembunyi di partials/sidebar.blade.php)
+        const form = document.getElementById('logout-form');
+        if (form) form.submit(); else window.location.href = '/login';
       }
     });
   },
@@ -419,15 +421,11 @@ const Store = {
   },
 
   requireAuth() {
-    if (!this.getCurrentUser()) {
-      window.location.href = '/login';
-    }
+    // Dijaga oleh middleware 'auth' di server (routes/web.php)
   },
 
   requireGuest() {
-    if (this.getCurrentUser()) {
-      window.location.href = '/dashboard';
-    }
+    // Dijaga oleh middleware 'guest' di server (routes/web.php)
   },
 
   // Categories CRUD

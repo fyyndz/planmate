@@ -22,35 +22,38 @@
                 <p style="margin: 0; font-size: 16px; line-height: 24px;">Buat akun untuk mulai mengatur tugas &amp; aktivitasmu</p>
             </div>
  
-            <div id="auth-alert" style="display: none; margin-bottom: 24px;" class="alert alert-danger">
-                <span id="auth-error-msg"></span>
-            </div>
+            @if ($errors->any())
+<div class="alert alert-danger" style="margin-bottom: 24px;">
+    <span>{{ $errors->first() }}</span>
+</div>
+@endif
  
-            <form id="registerForm" style="display: flex; flex-direction: column; gap: 20px;">
+            <form id="registerForm" method="POST" action="/register" style="display: flex; flex-direction: column; gap: 20px;">
+                @csrf
                 <div class="form-group" style="margin: 0;">
                     <label for="name" style="display: block; margin-bottom: 8px; font-size: 16px;"><i class="fas fa-id-card"></i> Nama Lengkap</label>
-                    <input type="text" id="name" class="form-control" placeholder="Contoh: Budi Santoso" autocomplete="name" required>
+                    <input type="text" id="name" name="name" value="{{ old('name') }}" class="form-control" placeholder="Contoh: Budi Santoso" autocomplete="name" required>
                 </div>
  
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                     <div class="form-group" style="margin: 0;">
                         <label for="username" style="display: block; margin-bottom: 8px; font-size: 16px;"><i class="fas fa-user"></i> Username</label>
-                        <input type="text" id="username" class="form-control" placeholder="Contoh: budisantoso" autocomplete="username" required>
+                        <input type="text" id="username" name="username" value="{{ old('username') }}" class="form-control" placeholder="Contoh: budisantoso" autocomplete="username" required>
                     </div>
                     <div class="form-group" style="margin: 0;">
                         <label for="jurusan" style="display: block; margin-bottom: 8px; font-size: 16px;"><i class="fas fa-graduation-cap"></i> Jurusan</label>
-                        <input type="text" id="jurusan" class="form-control" placeholder="Teknik Informatika" required>
+                        <input type="text" id="jurusan" name="jurusan" value="{{ old('jurusan') }}" class="form-control" placeholder="Teknik Informatika" required>
                     </div>
                 </div>
  
                 <div class="form-group" style="margin: 0;">
                     <label for="email" style="display: block; margin-bottom: 8px; font-size: 16px;"><i class="fas fa-envelope"></i> Email</label>
-                    <input type="email" id="email" class="form-control" placeholder="budi@student.ac.id" autocomplete="email" required>
+                    <input type="email" id="email" name="email" value="{{ old('email') }}" class="form-control" placeholder="budi@student.ac.id" autocomplete="email" required>
                 </div>
  
                 <div class="form-group" style="margin: 0;">
                     <label for="password" style="display: block; margin-bottom: 8px; font-size: 16px;"><i class="fas fa-lock"></i> Kata Sandi</label>
-                    <input type="password" id="password" class="form-control" placeholder="Minimal 6 karakter" autocomplete="new-password" required minlength="6">
+                    <input type="password" id="password" name="password" class="form-control" placeholder="Minimal 6 karakter" autocomplete="new-password" required minlength="6">
                 </div>
  
                 <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 4px; padding: 16px; font-size: 16px;">
@@ -64,27 +67,5 @@
         </div>
     </div>
 
-    <script>
-        document.getElementById('registerForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const userData = {
-                name: document.getElementById('name').value.trim(),
-                username: document.getElementById('username').value.trim(),
-                jurusan: document.getElementById('jurusan').value.trim(),
-                email: document.getElementById('email').value.trim(),
-                password: document.getElementById('password').value
-            };
-
-            const res = Store.registerUser(userData);
-            if (res.success) {
-                window.location.href = '/login?registered=1';
-            } else {
-                const alertElem = document.getElementById('auth-alert');
-                document.getElementById('auth-error-msg').textContent = res.message;
-                alertElem.style.display = 'flex';
-                alertElem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
-        });
-    </script>
 </body>
 </html>

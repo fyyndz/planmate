@@ -489,6 +489,45 @@
     <script>
         let currentGoalFilter = 'all';
 
+        // ---------- Komunikasi dengan server (data goals tersimpan di MySQL) ----------
+        const GOAL_CSRF = '{{ csrf_token() }}';
+
+        async function goalApi(method, url, body) {
+            const res = await fetch(url, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': GOAL_CSRF
+                },
+                body: body ? JSON.stringify(body) : undefined
+            });
+            if (res.status === 401 || res.status === 419) {
+                window.location.href = '/login';
+                throw new Error('Sesi berakhir, silakan masuk lagi.');
+            }
+            if (!res.ok) {
+                let msg = 'Terjadi kesalahan saat menyimpan data.';
+                try {
+                    const j = await res.json();
+                    if (j.errors) msg = Object.values(j.errors)[0][0];
+                    else if (j.message) msg = j.message;
+                } catch (e) {}
+                throw new Error(msg);
+            }
+            return res.status === 204 ? null : res.json();
+        }
+
+        // Ambil ulang daftar goals dari server lalu simpan ke localStorage (dipakai Store.getGoals)
+        async function syncGoals() {
+            const goals = await goalApi('GET', '/goals/data');
+            try { localStorage.setItem('planmate_goals', JSON.stringify(goals)); } catch (e) {}
+        }
+
+        function goalError(e) {
+            alert(e && e.message ? e.message : 'Terjadi kesalahan.');
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             const user = Store.getCurrentUser();
             if (user) {
@@ -694,9 +733,12 @@
         }
 
         // Subtarget Toggle with automatic progress calculation
-        function toggleSubtarget(goalId, subtargetId) {
-            Store.toggleGoalSubtarget(goalId, subtargetId);
-            renderGoals();
+        async function toggleSubtarget(goalId, subtargetId) {
+            try {
+                await goalApi('PATCH', `/goals/${goalId}/tahapan/${subtargetId}/toggle`);
+                await syncGoals();
+                renderGoals();
+            } catch (e) { goalError(e); }
         }
 
         // Quick Progress Modal
@@ -716,12 +758,15 @@
             document.getElementById('progressModal').style.display = 'none';
         }
 
-        function saveQuickProgress() {
+        async function saveQuickProgress() {
             const goalId = document.getElementById('quickGoalId').value;
             const prog = Number(document.getElementById('quickProgressSlider').value) || 0;
-            Store.updateGoalProgress(goalId, prog);
-            closeProgressModal();
-            renderGoals();
+            try {
+                await goalApi('PATCH', `/goals/${goalId}/progress`, { progres: prog });
+                await syncGoals();
+                closeProgressModal();
+                renderGoals();
+            } catch (e) { goalError(e); }
         }
 
         // ============================================================
@@ -891,7 +936,7 @@
             document.getElementById('goalModal').style.display = 'none';
         }
 
-        document.getElementById('goalForm').addEventListener('submit', (e) => {
+        document.getElementById('goalForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const id = document.getElementById('goalId').value;
             const judul = document.getElementById('goalJudul').value.trim();
@@ -926,14 +971,16 @@
                 targetKecil
             };
 
-            if (id) {
-                Store.updateGoal(id, data);
-            } else {
-                Store.addGoal(data);
-            }
-
-            closeGoalModal();
-            renderGoals();
+            try {
+                if (id) {
+                    await goalApi('PUT', `/goals/${id}`, data);
+                } else {
+                    await goalApi('POST', '/goals', data);
+                }
+                await syncGoals();
+                closeGoalModal();
+                renderGoals();
+            } catch (err) { goalError(err); }
         });
 
         function deleteGoalItem(id) {
@@ -946,9 +993,12 @@
                 confirmText: 'Ya, Hapus',
                 cancelText: 'Batal',
                 isDanger: true,
-                onConfirm: () => {
-                    Store.deleteGoal(id);
-                    renderGoals();
+                onConfirm: async () => {
+                    try {
+                        await goalApi('DELETE', `/goals/${id}`);
+                        await syncGoals();
+                        renderGoals();
+                    } catch (e) { goalError(e); }
                 }
             });
         }

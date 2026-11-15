@@ -37,12 +37,15 @@
         </script>
 
         <!-- Alert -->
-        <div id="auth-alert" style="display: none; margin-bottom: 16px;" class="alert alert-danger">
-            <span id="auth-error-msg"></span>
-        </div>
+        @if ($errors->any())
+<div class="alert alert-danger" style="margin-bottom: 16px;">
+    <span>{{ $errors->first() }}</span>
+</div>
+@endif
 
         <!-- Form Login -->
-        <form id="loginForm">
+        <form id="loginForm" method="POST" action="/login">
+            @csrf
             <div class="form-group" style="margin-bottom: 16px;">
                 <label for="identifier" style="font-size: 14px; font-weight: 600; color: #334155; display: block; margin-bottom: 8px;">
                     <i class="fas fa-user" style="margin-right: 4px;"></i>
@@ -51,6 +54,8 @@
                 <input
                     type="text"
                     id="identifier"
+                    name="identifier"
+                    value="{{ old('identifier') }}"
                     class="form-control"
                     placeholder="mahasiswa@student.ac.id atau username"
                     autocomplete="username"
@@ -68,6 +73,7 @@
                 <input
                     type="password"
                     id="password"
+                    name="password"
                     class="form-control"
                     placeholder="Masukkan kata sandi"
                     autocomplete="current-password"
@@ -120,21 +126,6 @@
             document.getElementById('identifier').value = 'mahasiswa';
             document.getElementById('password').value = 'password123';
         }
-
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const identifier = document.getElementById('identifier').value.trim();
-            const password = document.getElementById('password').value;
-
-            const res = Store.loginUser(identifier, password);
-            if (res.success) {
-                window.location.href = '/dashboard';
-            } else {
-                const alertElem = document.getElementById('auth-alert');
-                document.getElementById('auth-error-msg').textContent = res.message;
-                alertElem.style.display = 'flex';
-            }
-        });
     </script>
 </body>
 </html>

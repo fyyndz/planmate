@@ -13,6 +13,9 @@ return new class extends Migration
     {
         Schema::create('goal_tahapans', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('goal_id')->constrained()->onDelete('cascade');
+            $table->string('text');
+            $table->boolean('done')->default(false);
             $table->timestamps();
         });
     }

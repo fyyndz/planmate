@@ -1,3 +1,20 @@
+@auth
+@php
+    $pmUser = auth()->user()->only(['id', 'name', 'username', 'email', 'jurusan', 'bio']);
+    $pmGoals = \App\Models\Goal::forFrontend(auth()->id());
+@endphp
+<script>
+    // Jembatan sementara: sinkronkan user yang login di server ke localStorage,
+    // supaya halaman lama (yang masih memakai store.js) tetap jalan.
+    try {
+        localStorage.setItem('planmate_current_user', JSON.stringify({{ \Illuminate\Support\Js::from($pmUser) }}));
+        // Goals dibaca dari MySQL, lalu disalin ke localStorage agar halaman lama (mis. dashboard) ikut menampilkannya
+        localStorage.setItem('planmate_goals', JSON.stringify({{ \Illuminate\Support\Js::from($pmGoals) }}));
+    } catch (e) {}
+</script>
+@endauth
+<form id="logout-form" method="POST" action="/logout" style="display: none;">@csrf</form>
+
 <aside class="app-sidebar">
     <a href="/dashboard" class="sidebar-logo">
         <div class="sidebar-logo-icon">

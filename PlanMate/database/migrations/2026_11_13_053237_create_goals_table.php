@@ -14,10 +14,11 @@ return new class extends Migration
         Schema::create('goals', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('aktivitas_id')->nullable()->constrained('aktivitas')->nullOnDelete();
+            // Belum pakai foreign key: aktivitas masih di localStorage. FK ditambahkan nanti setelah aktivitas pindah ke database.
+            $table->unsignedBigInteger('aktivitas_id')->nullable()->index();
             $table->string('judul');
             $table->text('deskripsi')->nullable();
-            $table->date('deadline')->nullable();
+            $table->dateTime('deadline')->nullable();
             $table->unsignedTinyInteger('progres')->default(0);
             $table->timestamps();
         });
