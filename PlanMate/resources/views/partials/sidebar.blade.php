@@ -38,6 +38,10 @@
             <i class="fas fa-bullseye"></i> Target &amp; Goals
         </a>
 
+        <a href="/lampiran" class="sidebar-link {{ request()->is('lampiran') ? 'active' : '' }}">
+            <i class="fas fa-paperclip"></i> Lampiran Berkas
+        </a>
+
         <a href="/kategori" class="sidebar-link {{ request()->is('kategori') ? 'active' : '' }}">
             <i class="fas fa-tags"></i> Kategori &amp; Status
         </a>

@@ -14,7 +14,14 @@ Route::middleware('guest')->group(function () {
     Route::view('/register', 'register')->name('register');
     Route::post('/register', [AuthController::class, 'register']);
 });
-
+// ---- Lampiran (tersimpan di MySQL & Storage)
+    Route::view('/lampiran', 'lampiran');
+    Route::get('/lampiran/data', [LampiranController::class, 'data']);
+    Route::post('/lampiran', [LampiranController::class, 'store']);
+    Route::get('/lampiran/{id}/download', [LampiranController::class, 'download'])->whereNumber('id');
+    Route::put('/lampiran/{id}', [LampiranController::class, 'update'])->whereNumber('id');
+    Route::delete('/lampiran/{id}', [LampiranController::class, 'destroy'])->whereNumber('id');
+    
 // Halaman yang wajib login
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
