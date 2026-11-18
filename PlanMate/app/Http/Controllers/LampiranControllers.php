@@ -52,16 +52,18 @@ class LampiranController extends Controller
         return response()->json($lampiran->toFrontend(), 201);
     }
 
-    /** Read (Download): Unduh berkas lampiran dengan nama asli. */
     public function download(int $id): StreamedResponse
     {
         $lampiran = $this->ownLampiran($id);
 
-        if (! Storage::disk('public')->exists($lampiran->path_file)) {
+        /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
+        $disk = Storage::disk('public');
+
+        if (! $disk->exists($lampiran->path_file)) {
             abort(404, 'Berkas fisik tidak ditemukan di penyimpanan.');
         }
 
-        return Storage::disk('public')->download($lampiran->path_file, $lampiran->nama_file_asli);
+        return $disk->download($lampiran->path_file, $lampiran->nama_file_asli);
     }
 
     /** Update: Ubah metadata atau ganti berkas lampiran dengan file baru. */
