@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>PlanMate - Semua Aktivitas</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -10,7 +11,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
     <script src="{{ asset('assets/js/store.js') }}"></script>
-    <script>Store.requireAuth();</script>
     <style>
         @keyframes rowPulse {
             0% { background-color: #fef08a; transform: scale(1.005); }
@@ -181,17 +181,13 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const user = Store.getCurrentUser();
-            if (user) {
-                const name = user.name || user.username;
-                document.getElementById('sidebar-user-name').textContent = name;
-                document.getElementById('sidebar-user-role').textContent = user.jurusan || 'Mahasiswa';
-                document.getElementById('sidebar-avatar').textContent = name.charAt(0).toUpperCase();
-            }
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        let cachedCategories = [];
+        let cachedActivities = [];
 
-            populateCategoryDropdown();
-            renderAktivitas();
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadCategories();
+            await loadAktivitas();
 
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('action') === 'create') {
@@ -211,29 +207,34 @@
             }
         });
 
-        function populateCategoryDropdown() {
-            const categories = Store.getCategories();
+        async function loadCategories() {
+            const res = await fetch('/kategori/data');
+            cachedCategories = await res.json();
             const select = document.getElementById('kategoriId');
             select.innerHTML = '<option value="">-- Pilih Kategori --</option>';
-            categories.forEach(c => {
+            cachedCategories.forEach(c => {
                 select.innerHTML += `<option value="${c.id}">${escapeHtml(c.name)}</option>`;
             });
         }
 
+        async function loadAktivitas() {
+            const res = await fetch('/aktivitas/data');
+            cachedActivities = await res.json();
+            renderAktivitas();
+        }
+
         function renderAktivitas() {
-            const activities = Store.getActivities();
-            const categories = Store.getCategories();
             const tbody = document.getElementById('tbl-aktivitas-body');
             tbody.innerHTML = '';
 
-            if (activities.length === 0) {
+            if (cachedActivities.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:35px; color:var(--text-muted);">Belum ada aktivitas. Klik "Tambah Aktivitas Baru".</td></tr>`;
                 return;
             }
 
-            activities.forEach((act, idx) => {
-                const cat = categories.find(c => Number(c.id) === Number(act.kategoriId)) || { name: 'Umum', color: '#64748b' };
-                const deadlineDate = new Date(act.deadline);
+            cachedActivities.forEach((act, idx) => {
+                const cat = act.kategori || cachedCategories.find(c => Number(c.id) === Number(act.kategori_id)) || { name: 'Umum', color: '#64748b' };
+                const deadlineDate = new Date(act.deadline.replace(' ', 'T'));
                 const dateFormatted = deadlineDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
                 let prioBadge = '<span class="badge badge-medium">Sedang</span>';
@@ -285,23 +286,30 @@
         }
 
         function markDone(id) {
-            const act = Store.getActivity(id);
-            if (!act) return;
-            if (act.status === 'Selesai') {
-                return;
+            const act = cachedActivities.find(a => Number(a.id) === Number(id));
+            if (!act || act.status === 'Selesai') return;
+
+            const executeDone = async () => {
+                await fetch(`/aktivitas/${id}/done`, {
+                    method: 'PATCH',
+                    headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' }
+                });
+                loadAktivitas();
+            };
+
+            if (typeof Store !== 'undefined' && Store.showConfirm) {
+                Store.showConfirm({
+                    title: 'Selesaikan Aktivitas?',
+                    message: `Tandai tugas "${escapeHtml(act.judul)}" sebagai telah selesai dikerjakan?`,
+                    icon: 'fas fa-check-circle',
+                    confirmText: 'Ya, Selesai',
+                    cancelText: 'Batal',
+                    isDanger: false,
+                    onConfirm: executeDone
+                });
+            } else if (confirm(`Selesaikan tugas "${act.judul}"?`)) {
+                executeDone();
             }
-            Store.showConfirm({
-                title: 'Selesaikan Aktivitas?',
-                message: `Tandai tugas "${escapeHtml(act.judul)}" sebagai telah selesai dikerjakan?`,
-                icon: 'fas fa-check-circle',
-                confirmText: 'Ya, Selesai',
-                cancelText: 'Batal',
-                isDanger: false,
-                onConfirm: () => {
-                    Store.updateActivity(id, { status: 'Selesai' });
-                    renderAktivitas();
-                }
-            });
         }
 
         function openActModal(actId = null) {
@@ -309,19 +317,20 @@
             document.getElementById('actId').value = '';
 
             if (actId) {
-                const act = Store.getActivity(actId);
+                const act = cachedActivities.find(a => Number(a.id) === Number(actId));
                 if (act) {
                     document.getElementById('actModalTitle').innerHTML = '<i class="fas fa-edit" style="color: var(--primary-accent-hover);"></i> Edit Aktivitas';
                     document.getElementById('actId').value = act.id;
                     document.getElementById('judul').value = act.judul;
-                    document.getElementById('kategoriId').value = act.kategoriId;
+                    document.getElementById('kategoriId').value = act.kategori_id;
                     document.getElementById('status').value = act.status;
                     document.getElementById('prioritas').value = act.prioritas || 'Sedang';
                     document.getElementById('deskripsi').value = act.deskripsi || '';
 
                     if (act.deadline) {
-                        document.getElementById('deadline_date').value = act.deadline.slice(0, 10);
-                        document.getElementById('deadline_time').value = act.deadline.slice(11, 16) || '23:59';
+                        const normalized = act.deadline.replace(' ', 'T');
+                        document.getElementById('deadline_date').value = normalized.slice(0, 10);
+                        document.getElementById('deadline_time').value = normalized.slice(11, 16) || '23:59';
                     }
                     document.getElementById('btnActSubmit').innerHTML = '<i class="fas fa-save"></i> Simpan Perubahan';
                 }
@@ -338,11 +347,10 @@
         function closeActModal() { document.getElementById('actModal').style.display = 'none'; }
         
         function openViewActModal(actId) {
-            const act = Store.getActivity(actId);
+            const act = cachedActivities.find(a => Number(a.id) === Number(actId));
             if (!act) return;
-            const categories = Store.getCategories();
-            const cat = categories.find(c => Number(c.id) === Number(act.kategoriId)) || { name: 'Umum', color: '#64748b' };
-            const dl = new Date(act.deadline);
+            const cat = act.kategori || cachedCategories.find(c => Number(c.id) === Number(act.kategori_id)) || { name: 'Umum', color: '#64748b' };
+            const dl = new Date(act.deadline.replace(' ', 'T'));
 
             document.getElementById('viewActHeading').textContent = act.judul;
             document.getElementById('viewActCategory').innerHTML = `<span class="cat-pill" style="background:${cat.color}15; color:${cat.color}; border:1px solid ${cat.color}40;">${escapeHtml(cat.name)}</span>`;
@@ -371,61 +379,69 @@
             document.getElementById('viewActModal').style.display = 'flex';
         }
 
-        function closeViewActModal() {
-            document.getElementById('viewActModal').style.display = 'none';
-        }
-
+        function closeViewActModal() { document.getElementById('viewActModal').style.display = 'none'; }
         function editAct(id) { openActModal(id); }
         
         function deleteAct(id) {
-            const act = Store.getActivity(id);
+            const act = cachedActivities.find(a => Number(a.id) === Number(id));
             const title = act ? act.judul : 'aktivitas ini';
-            Store.showConfirm({
-                title: 'Hapus Aktivitas?',
-                message: `Apakah Anda yakin ingin menghapus "${escapeHtml(title)}"? Tindakan ini tidak dapat dibatalkan.`,
-                icon: 'fas fa-trash-alt',
-                confirmText: 'Ya, Hapus',
-                cancelText: 'Batal',
-                isDanger: true,
-                onConfirm: () => {
-                    Store.deleteActivity(id);
-                    renderAktivitas();
-                }
-            });
+
+            const executeDelete = async () => {
+                await fetch(`/aktivitas/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' }
+                });
+                loadAktivitas();
+            };
+
+            if (typeof Store !== 'undefined' && Store.showConfirm) {
+                Store.showConfirm({
+                    title: 'Hapus Aktivitas?',
+                    message: `Apakah Anda yakin ingin menghapus "${escapeHtml(title)}"? Tindakan ini tidak dapat dibatalkan.`,
+                    icon: 'fas fa-trash-alt',
+                    confirmText: 'Ya, Hapus',
+                    cancelText: 'Batal',
+                    isDanger: true,
+                    onConfirm: executeDelete
+                });
+            } else if (confirm(`Hapus aktivitas "${title}"?`)) {
+                executeDelete();
+            }
         }
 
-        document.getElementById('actForm').addEventListener('submit', (e) => {
+        document.getElementById('actForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const id = document.getElementById('actId').value;
             const dateVal = document.getElementById('deadline_date').value;
             const timeVal = document.getElementById('deadline_time').value || '23:59';
-            const combinedDeadline = `${dateVal}T${timeVal}`;
 
-            const data = {
+            const payload = {
                 judul: document.getElementById('judul').value.trim(),
-                kategoriId: document.getElementById('kategoriId').value,
-                deadline: combinedDeadline,
+                kategori_id: document.getElementById('kategoriId').value,
+                deadline: `${dateVal} ${timeVal}:00`,
                 prioritas: document.getElementById('prioritas').value,
                 status: document.getElementById('status').value,
                 deskripsi: document.getElementById('deskripsi').value.trim()
             };
 
-            if (id) Store.updateActivity(id, data);
-            else Store.addActivity(data);
+            const url = id ? `/aktivitas/${id}` : '/aktivitas';
+            const method = id ? 'PUT' : 'POST';
 
-            closeActModal();
-            renderAktivitas();
-        });
+            const res = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
 
-        // Overlay click to close
-        ['actModal', 'viewActModal'].forEach(mId => {
-            const el = document.getElementById(mId);
-            if (el) {
-                el.addEventListener('click', (e) => {
-                    if (e.target === el) {
-                        el.style.display = 'none';
-                    }
-                });
+            if (res.ok) {
+                closeActModal();
+                loadAktivitas();
+            } else {
+                alert('Gagal menyimpan aktivitas. Pastikan kategori sudah dipilih.');
             }
         });
 

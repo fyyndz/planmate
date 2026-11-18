@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>PlanMate - Kategori &amp; Status</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -10,7 +11,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
     <script src="{{ asset('assets/js/store.js') }}"></script>
-    <script>Store.requireAuth();</script>
 </head>
 <body>
     <div class="app-shell">
@@ -77,26 +77,35 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const user = Store.getCurrentUser();
-            if (user) {
-                const name = user.name || user.username;
-                document.getElementById('sidebar-user-name').textContent = name;
-                document.getElementById('sidebar-user-role').textContent = user.jurusan || 'Mahasiswa';
-                document.getElementById('sidebar-avatar').textContent = name.charAt(0).toUpperCase();
-            }
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        let cachedCategories = [];
 
-            renderCategoryTable();
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCategories();
         });
 
+        // READ: Ambil data kategori dari database Laravel
+        async function loadCategories() {
+            try {
+                const res = await fetch('/kategori/data');
+                cachedCategories = await res.json();
+                renderCategoryTable();
+            } catch (err) {
+                console.error('Gagal memuat kategori:', err);
+            }
+        }
+
         function renderCategoryTable() {
-            const categories = Store.getCategories();
-            const activities = Store.getActivities();
             const tbody = document.getElementById('cat-table-body');
             tbody.innerHTML = '';
 
-            categories.forEach((c, index) => {
-                const count = activities.filter(a => Number(a.kategoriId) === Number(c.id)).length;
+            if (cachedCategories.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:30px; color:var(--text-muted);">Belum ada kategori. Silakan tambah kategori baru.</td></tr>`;
+                return;
+            }
+
+            cachedCategories.forEach((c, index) => {
+                const count = c.aktivitas_count ?? 0;
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${index + 1}</td>
@@ -119,7 +128,7 @@
         }
 
         function editCat(id) {
-            const c = Store.getCategories().find(item => Number(item.id) === Number(id));
+            const c = cachedCategories.find(item => Number(item.id) === Number(id));
             if (c) {
                 document.getElementById('catId').value = c.id;
                 document.getElementById('catName').value = c.name;
@@ -135,43 +144,72 @@
         function resetCatForm() {
             document.getElementById('catForm').reset();
             document.getElementById('catId').value = '';
-            document.getElementById('cat-form-title').innerHTML = '<i class="fas fa-plus-circle"></i> Tambah Kategori Baru';
+            document.getElementById('cat-form-title').innerHTML = '<i class="fas fa-plus-circle"></i> Tambah Kategori';
             document.getElementById('cat-btn-text').textContent = 'Simpan Kategori';
             document.getElementById('btn-cancel-edit').style.display = 'none';
         }
 
+        // DELETE: Hapus kategori dari database
         function deleteCat(id) {
-            const cat = Store.getCategories().find(item => Number(item.id) === Number(id));
+            const cat = cachedCategories.find(item => Number(item.id) === Number(id));
             const catName = cat ? cat.name : 'kategori ini';
-            Store.showConfirm({
-                title: 'Hapus Kategori?',
-                message: `Apakah Anda yakin ingin menghapus kategori "${escapeHtml(catName)}"? Aktivitas yang terhubung dengan kategori ini mungkin perlu disesuaikan kembali.`,
-                icon: 'fas fa-trash-alt',
-                confirmText: 'Ya, Hapus',
-                cancelText: 'Batal',
-                isDanger: true,
-                onConfirm: () => {
-                    Store.deleteCategory(id);
-                    resetCatForm();
-                    renderCategoryTable();
-                }
-            });
+            
+            const executeDelete = async () => {
+                await fetch(`/kategori/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json'
+                    }
+                });
+                resetCatForm();
+                loadCategories();
+            };
+
+            if (typeof Store !== 'undefined' && Store.showConfirm) {
+                Store.showConfirm({
+                    title: 'Hapus Kategori?',
+                    message: `Apakah Anda yakin ingin menghapus kategori "${escapeHtml(catName)}"? Aktivitas yang terhubung dengan kategori ini akan ikut terhapus.`,
+                    icon: 'fas fa-trash-alt',
+                    confirmText: 'Ya, Hapus',
+                    cancelText: 'Batal',
+                    isDanger: true,
+                    onConfirm: executeDelete
+                });
+            } else if (confirm(`Hapus kategori "${catName}"?`)) {
+                executeDelete();
+            }
         }
 
-        document.getElementById('catForm').addEventListener('submit', (e) => {
+        // CREATE & UPDATE: Simpan ke database Laravel
+        document.getElementById('catForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const id = document.getElementById('catId').value;
-            const data = {
+            const payload = {
                 name: document.getElementById('catName').value.trim(),
                 color: document.getElementById('catColor').value,
                 description: document.getElementById('catDesc').value.trim()
             };
 
-            if (id) Store.updateCategory(id, data);
-            else Store.addCategory(data);
+            const url = id ? `/kategori/${id}` : '/kategori';
+            const method = id ? 'PUT' : 'POST';
 
-            resetCatForm();
-            renderCategoryTable();
+            const res = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                resetCatForm();
+                loadCategories();
+            } else {
+                alert('Gagal menyimpan kategori. Periksa kembali inputan Anda.');
+            }
         });
 
         function escapeHtml(str) {

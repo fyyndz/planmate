@@ -2,11 +2,21 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 
-#[Fillable(['name', 'color', 'description'])]
 class Kategori extends Model
 {
-    //
+    protected $table = 'kategoris';
+
+    protected $fillable = [
+        'user_id',
+        'name',
+        'color',
+        'description',
+    ];
+
+    public function aktivitas()
+    {
+        return $this->hasMany(Aktivitas::class, 'kategori_id');
+    }
 }
