@@ -6,27 +6,21 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('aktivitas', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('kategori_id')->nullable()->constrained('kategoris')->nullOnDelete();
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('kategori_id')->constrained('kategoris')->onDelete('cascade');
             $table->string('judul');
+            $table->dateTime('deadline');
+            $table->enum('prioritas', ['Rendah', 'Sedang', 'Tinggi'])->default('Sedang');
+            $table->enum('status', ['Belum Dimulai', 'Sedang Dikerjakan', 'Selesai'])->default('Belum Dimulai');
             $table->text('deskripsi')->nullable();
-            $table->dateTime('deadline')->nullable();
-            $table->string('prioritas')->default('Sedang');
-            $table->string('status')->default('Belum Dimulai');
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('aktivitas');

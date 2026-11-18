@@ -1,39 +1,24 @@
 <?php
 
+use App\Http\Controllers\AktivitasController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\GoalController;
+use App\Http\Controllers\KategoriController;
 use Illuminate\Support\Facades\Route;
 
-Route::redirect('/', '/dashboard');
+// ... (di dalam Route::middleware('auth')->group)
 
-// Halaman untuk tamu (belum login)
-Route::middleware('guest')->group(function () {
-    Route::view('/login', 'login')->name('login');
-    Route::post('/login', [AuthController::class, 'login']);
-
-    Route::view('/register', 'register')->name('register');
-    Route::post('/register', [AuthController::class, 'register']);
-});
-
-// Halaman yang wajib login
-Route::middleware('auth')->group(function () {
-    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-
-    Route::view('/dashboard', 'dashboard');
-    Route::view('/aktivitas', 'aktivitas');
+    // ---- Kategori (CRUD Database)
     Route::view('/kategori', 'kategori');
-    Route::view('/profil', 'profil');
-    Route::view('/pencarian', 'pencarian');
-    Route::view('/kalender', 'kalender');
-    Route::view('/deadline', 'deadline');
+    Route::get('/kategori/data', [KategoriController::class, 'data']);
+    Route::post('/kategori', [KategoriController::class, 'store']);
+    Route::put('/kategori/{id}', [KategoriController::class, 'update'])->whereNumber('id');
+    Route::delete('/kategori/{id}', [KategoriController::class, 'destroy'])->whereNumber('id');
 
-    // ---- Goals (tersimpan di MySQL)
-    Route::view('/goals', 'goals');
-    Route::get('/goals/data', [GoalController::class, 'data']);
-    Route::post('/goals', [GoalController::class, 'store']);
-    Route::put('/goals/{id}', [GoalController::class, 'update'])->whereNumber('id');
-    Route::delete('/goals/{id}', [GoalController::class, 'destroy'])->whereNumber('id');
-    Route::patch('/goals/{id}/progress', [GoalController::class, 'progress'])->whereNumber('id');
-    Route::patch('/goals/{id}/tahapan/{tahapanId}/toggle', [GoalController::class, 'toggleTahapan'])
-        ->whereNumber('id')->whereNumber('tahapanId');
-});
+    // ---- Aktivitas (CRUD Database)
+    Route::view('/aktivitas', 'aktivitas');
+    Route::get('/aktivitas/data', [AktivitasController::class, 'data']);
+    Route::post('/aktivitas', [AktivitasController::class, 'store']);
+    Route::put('/aktivitas/{id}', [AktivitasController::class, 'update'])->whereNumber('id');
+    Route::patch('/aktivitas/{id}/done', [AktivitasController::class, 'markDone'])->whereNumber('id');
+    Route::delete('/aktivitas/{id}', [AktivitasController::class, 'destroy'])->whereNumber('id');
