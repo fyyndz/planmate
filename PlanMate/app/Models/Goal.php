@@ -31,38 +31,73 @@ class Goal extends Model
         return $this->hasMany(GoalTahapan::class)->orderBy('id');
     }
 
-    /**
-     * Bentuk data yang dipakai halaman goals (sama seperti format lama di store.js).
-     */
-    public function toFrontend(): array
+    public function scopeMilikUser($query, int $userId)
     {
-        return [
-            'id'          => $this->id,
-            'userId'      => $this->user_id,
-            'aktivitasId' => $this->aktivitas_id,
-            'judul'       => $this->judul,
-            'deskripsi'   => $this->deskripsi ?? '',
-            'deadline'    => $this->deadline?->format('Y-m-d\TH:i') ?? '',
-            'progres'     => (int) $this->progres,
-            'targetKecil' => $this->tahapan->map(fn ($t) => [
-                'id'   => $t->id,
-                'text' => $t->text,
-                'done' => (bool) $t->done,
-            ])->values()->all(),
-            'createdAt'   => $this->created_at?->toIso8601String(),
-        ];
+        return $query->where('user_id', $userId);
     }
 
-    /**
-     * Semua goals milik satu user, dalam format halaman.
-     */
-    public static function forFrontend(int $userId): array
+    /** Ganti seluruh tahapan dengan daftar yang dikirim. */
+    public function gantiTahapan(array $rows): void
     {
-        return static::with('tahapan')
-            ->where('user_id', $userId)
-            ->orderBy('id')
+        $this->tahapan()->delete();
+        $this->tahapan()->createMany(
+            collect($rows)->map(fn ($r) => [
+                'text' => $r['text'],
+                'done' => (bool) ($r['done'] ?? false),
+            ])->all()
+        );
+    }
+
+    /** Ada tahapan: progres = persen selesai. Tidak ada: pakai nilai manual. */
+    public function sinkronProgres(?int $manual = null): void
+    {
+        $this->load('tahapan');
+        $total = $this->tahapan->count();
+
+        $progres = $total > 0
+            ? (int) round($this->tahapan->where('done', true)->count() / $total * 100)
+            : ($manual ?? (int) $this->progres);
+
+        $this->update(['progres' => max(0, min(100, $progres))]);
+    }
+
+    /** Slider update cepat. */
+    public function setProgres(int $p): void
+    {
+        $this->update(['progres' => $p]);
+
+        if (in_array($p, [0, 100], true) && $this->tahapan()->exists()) {
+            $this->tahapan()->update(['done' => $p === 100]);
+        }
+    }
+
+    // Di dalam app/Models/Goal.php
+    public static function forFrontend(?int $userId = null): array
+    {
+        $userId ??= auth()->id();
+
+        if (! $userId) {
+            return [];
+        }
+
+        return static::milikUser($userId)
+            ->with(['aktivitas', 'tahapan'])
+            ->orderBy('deadline')
             ->get()
-            ->map(fn (Goal $g) => $g->toFrontend())
+            ->map(fn (self $goal) => [
+                'id'           => $goal->id,
+                'judul'        => $goal->judul,
+                'deskripsi'    => $goal->deskripsi,
+                'deadline'     => $goal->deadline?->toISOString(),
+                'progres'      => $goal->progres,
+                'aktivitas_id' => $goal->aktivitas_id,
+                'tahapan'      => $goal->tahapan->map(fn ($t) => [
+                    'id'   => $t->id,
+                    'text' => $t->text,
+                    'done' => (bool) $t->done,
+                ])->values()->all(),
+            ])
             ->all();
     }
 }
+
