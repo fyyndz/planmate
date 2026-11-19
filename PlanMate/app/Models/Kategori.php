@@ -15,8 +15,18 @@ class Kategori extends Model
         'description',
     ];
 
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public function aktivitas()
     {
-        return $this->hasMany(Aktivitas::class, 'kategori_id');
+        return $this->hasMany(Aktivitas::class, 'category_id');
+    }
+
+    public function scopeMilikUser($query, int $userId)
+    {
+        return $query->where('user_id', $userId);
     }
 }

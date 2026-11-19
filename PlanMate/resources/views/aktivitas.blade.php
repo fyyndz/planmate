@@ -234,9 +234,22 @@
 
             cachedActivities.forEach((act, idx) => {
                 const cat = act.kategori || cachedCategories.find(c => Number(c.id) === Number(act.kategori_id)) || { name: 'Umum', color: '#64748b' };
-                const deadlineDate = new Date(act.deadline.replace(' ', 'T'));
-                const dateFormatted = deadlineDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-
+                let dateFormatted = '-';
+                if (act.deadline) {
+                    const cleanDate = String(act.deadline).replace(' ', 'T');
+                    const deadlineDate = new Date(cleanDate);
+                    if (!isNaN(deadlineDate.getTime())) {
+                        dateFormatted = deadlineDate.toLocaleDateString('id-ID', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                    } else {
+                        dateFormatted = act.deadline;
+                    }
+                }
                 let prioBadge = '<span class="badge badge-medium">Sedang</span>';
                 if (act.prioritas === 'Tinggi') prioBadge = '<span class="badge badge-high">Tinggi</span>';
                 if (act.prioritas === 'Rendah') prioBadge = '<span class="badge badge-low">Rendah</span>';
@@ -266,15 +279,9 @@
                     <td>${statusBadge}</td>
                     <td style="text-align: right;">
                         <div style="display:flex; gap:6px; justify-content:flex-end;">
-                        <button onclick="openViewActModal(${act.id})" class="btn btn-secondary btn-icon btn-sm" title="Lihat Rincian"><i class="fas fa-eye"></i></button>
-                            <a href="/goals?action=create&activity_id=${act.id}" class="btn btn-secondary btn-icon btn-sm" title="Buat Target / Goals dari Aktivitas ini" style="color:#2563eb;"><i class="fas fa-bullseye"></i></a>
-                            <a href="/lampiran?activity_id=${act.id}" class="btn btn-secondary btn-icon btn-sm" title="Kelola Lampiran Aktivitas" style="color:#059669;"><i class="fas fa-paperclip"></i></a>
-                            <button onclick="markDone(${act.id})" class="btn btn-secondary btn-icon btn-sm" style="${doneBtnStyle}" title="${isDone ? 'Aktivitas Selesai' : 'Tandai Sudah Selesai'}"><i class="fas fa-check-circle"></i></button>
-                            <button onclick="editAct(${act.id})" class="btn btn-secondary btn-icon btn-sm" title="Edit"><i class="fas fa-edit"></i></button>
-                            <button onclick="deleteAct(${act.id})" class="btn btn-secondary btn-icon btn-sm" style="color:#ef4444;" title="Hapus"><i class="fas fa-trash-alt"></i></button>
-                            
                             <button onclick="openViewActModal(${act.id})" class="btn btn-secondary btn-icon btn-sm" title="Lihat Rincian"><i class="fas fa-eye"></i></button>
                             <a href="/goals?action=create&activity_id=${act.id}" class="btn btn-secondary btn-icon btn-sm" title="Buat Target / Goals dari Aktivitas ini" style="color:#2563eb;"><i class="fas fa-bullseye"></i></a>
+                            <a href="/lampiran?activity_id=${act.id}" class="btn btn-secondary btn-icon btn-sm" title="Kelola Lampiran Aktivitas" style="color:#059669;"><i class="fas fa-paperclip"></i></a>
                             <button onclick="markDone(${act.id})" class="btn btn-secondary btn-icon btn-sm" style="${doneBtnStyle}" title="${isDone ? 'Aktivitas Selesai' : 'Tandai Sudah Selesai'}"><i class="fas fa-check-circle"></i></button>
                             <button onclick="editAct(${act.id})" class="btn btn-secondary btn-icon btn-sm" title="Edit"><i class="fas fa-edit"></i></button>
                             <button onclick="deleteAct(${act.id})" class="btn btn-secondary btn-icon btn-sm" style="color:#ef4444;" title="Hapus"><i class="fas fa-trash-alt"></i></button>
@@ -438,12 +445,13 @@
             });
 
             if (res.ok) {
-                closeActModal();
-                loadAktivitas();
-            } else {
-                alert('Gagal menyimpan aktivitas. Pastikan kategori sudah dipilih.');
-            }
-        });
+                    closeActModal();
+                    loadAktivitas();
+                } else {
+                    const errData = await res.json().catch(() => ({}));
+                    alert('Gagal menyimpan aktivitas: ' + (errData.message || `Error ${res.status}`));
+                }
+            });
 
         function escapeHtml(str) {
             return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
