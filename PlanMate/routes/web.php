@@ -1,3 +1,4 @@
+
 <?php
 
 use App\Http\Controllers\AktivitasController;
@@ -6,6 +7,8 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GoalController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\LampiranController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/dashboard');
@@ -33,7 +36,7 @@ Route::middleware('auth')->group(function () {
     Route::view('/kalender', 'kalender');
     Route::view('/deadline', 'deadline');
 
-    // ---- Lampiran (tersimpan di MySQL & Storage)
+    // ---- Lampiran
     Route::view('/lampiran', 'lampiran');
     Route::get('/lampiran/data', [LampiranController::class, 'data']);
     Route::post('/lampiran', [LampiranController::class, 'store']);
@@ -41,14 +44,14 @@ Route::middleware('auth')->group(function () {
     Route::put('/lampiran/{id}', [LampiranController::class, 'update'])->whereNumber('id');
     Route::delete('/lampiran/{id}', [LampiranController::class, 'destroy'])->whereNumber('id');
 
-    // ---- Kategori (CRUD Database)
+    // ---- Kategori
     Route::view('/kategori', 'kategori');
     Route::get('/kategori/data', [KategoriController::class, 'data']);
     Route::post('/kategori', [KategoriController::class, 'store']);
     Route::put('/kategori/{id}', [KategoriController::class, 'update'])->whereNumber('id');
     Route::delete('/kategori/{id}', [KategoriController::class, 'destroy'])->whereNumber('id');
 
-    // ---- Aktivitas (CRUD Database)
+    // ---- Aktivitas
     Route::view('/aktivitas', 'aktivitas');
     Route::get('/aktivitas/data', [AktivitasController::class, 'data']);
     Route::post('/aktivitas', [AktivitasController::class, 'store']);
@@ -56,7 +59,73 @@ Route::middleware('auth')->group(function () {
     Route::patch('/aktivitas/{id}/done', [AktivitasController::class, 'markDone'])->whereNumber('id');
     Route::delete('/aktivitas/{id}', [AktivitasController::class, 'destroy'])->whereNumber('id');
 
-    // ---- Goals (tersimpan di MySQL)
+    // ---- Catatan Materi Kuliah
+    Route::view('/catatan', 'catatan');
+
+    Route::get('/catatan/data', function () {
+        return DB::table('catatans')
+            ->where('user_id', auth()->id())
+            ->orderByDesc('updated_at')
+            ->get()
+            ->map(fn ($c) => [
+                'id'      => $c->id,
+                'subject' => $c->mata_kuliah,
+                'title'   => $c->judul,
+                'date'    => $c->tanggal,
+                'content' => $c->isi,
+            ])->values();
+    });
+
+    $rules = [
+        'subject' => 'required|string|max:100',
+        'title'   => 'required|string|max:150',
+        'date'    => 'nullable|date',
+        'content' => 'required|string',
+    ];
+
+    Route::post('/catatan', function (Request $r) use ($rules) {
+        $v = $r->validate($rules);
+
+        $id = DB::table('catatans')->insertGetId([
+            'user_id'     => auth()->id(),
+            'mata_kuliah' => $v['subject'],
+            'judul'       => $v['title'],
+            'tanggal'     => $v['date'] ?? null,
+            'isi'         => $v['content'],
+            'created_at'  => now(),
+            'updated_at'  => now(),
+        ]);
+
+        return response()->json(['id' => $id], 201);
+    });
+
+    Route::put('/catatan/{id}', function (Request $r, $id) use ($rules) {
+        $v = $r->validate($rules);
+
+        DB::table('catatans')
+            ->where('user_id', auth()->id())
+            ->where('id', $id)
+            ->update([
+                'mata_kuliah' => $v['subject'],
+                'judul'       => $v['title'],
+                'tanggal'     => $v['date'] ?? null,
+                'isi'         => $v['content'],
+                'updated_at'  => now(),
+            ]);
+
+        return response()->json(['ok' => true]);
+    })->whereNumber('id');
+
+    Route::delete('/catatan/{id}', function ($id) {
+        DB::table('catatans')
+            ->where('user_id', auth()->id())
+            ->where('id', $id)
+            ->delete();
+
+        return response()->json(['ok' => true]);
+    })->whereNumber('id');
+
+    // ---- Goals
     Route::view('/goals', 'goals');
     Route::get('/goals/data', [GoalController::class, 'data']);
     Route::post('/goals', [GoalController::class, 'store']);
