@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Kategori;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class KategoriController extends Controller
 {
@@ -12,9 +13,14 @@ class KategoriController extends Controller
     public function data()
     {
         $kategoris = Kategori::where('user_id', Auth::id())
-            ->withCount('aktivitas')
             ->latest()
-            ->get();
+            ->get()
+            ->map(function ($kategori) {
+                $kategori->aktivitas_count = DB::table('aktivitas')
+                    ->where('kategori_id', $kategori->id)
+                    ->count();
+                return $kategori;
+            });
 
         return response()->json($kategoris);
     }

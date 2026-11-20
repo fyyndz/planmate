@@ -14,7 +14,9 @@ class LampiranController extends Controller
     /** Read: Ambil semua lampiran milik user yang sedang login (bisa difilter per aktivitas_id). */
     public function data(Request $request): JsonResponse
     {
-        $query = Lampiran::where('user_id', Auth::id())->latest();
+        $query = Lampiran::with('aktivitas')
+            ->where('user_id', Auth::id())
+            ->latest();
 
         if ($request->filled('aktivitas_id')) {
             $query->where('aktivitas_id', (int) $request->aktivitas_id);
@@ -49,6 +51,8 @@ class LampiranController extends Controller
             'keterangan'     => $data['keterangan'] ?? null,
         ]);
 
+        $lampiran->load('aktivitas');
+
         return response()->json($lampiran->toFrontend(), 201);
     }
 
@@ -79,12 +83,11 @@ class LampiranController extends Controller
         ]);
 
         $updatePayload = [
-            'aktivitas_id'   => $data['aktivitas_id'] ?? $lampiran->aktivitas_id,
+            'aktivitas_id'   => $request->filled('aktivitas_id') ? (int) $data['aktivitas_id'] : null,
             'judul_lampiran' => $data['judul_lampiran'],
             'keterangan'     => $data['keterangan'] ?? null,
         ];
 
-        // Jika pengguna mengunggah file pengganti, hapus file lama dan simpan yang baru
         if ($request->hasFile('file')) {
             if ($lampiran->path_file && Storage::disk('public')->exists($lampiran->path_file)) {
                 Storage::disk('public')->delete($lampiran->path_file);
@@ -99,7 +102,7 @@ class LampiranController extends Controller
 
         $lampiran->update($updatePayload);
 
-        return response()->json($lampiran->fresh()->toFrontend());
+        return response()->json($lampiran->fresh('aktivitas')->toFrontend());
     }
 
     /** Delete: Hapus berkas fisik dari storage dan hapus record dari database. */

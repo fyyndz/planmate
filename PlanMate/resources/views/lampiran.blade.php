@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>PlanMate - Lampiran Aktivitas</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -10,7 +11,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
     <script src="{{ asset('assets/js/store.js') }}"></script>
-    <script>Store.requireAuth();</script>
 </head>
 <body>
     <div class="app-shell">
@@ -128,21 +128,13 @@
     </div>
 
     <script>
-        const LAMPIRAN_CSRF = '{{ csrf_token() }}';
+        const LAMPIRAN_CSRF = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         let lampiranList = [];
+        let aktivitasList = [];
 
         document.addEventListener('DOMContentLoaded', async () => {
-            const user = Store.getCurrentUser();
-            if (user) {
-                const name = user.name || user.username;
-                document.getElementById('sidebar-user-name').textContent = name;
-                document.getElementById('sidebar-user-role').textContent = user.jurusan || 'Mahasiswa';
-                document.getElementById('sidebar-avatar').textContent = name.charAt(0).toUpperCase();
-            }
+            await loadAktivitasOptions();
 
-            populateAktivitasSelects();
-
-            // Cek jika dibuka dari halaman aktivitas (?activity_id=...)
             const params = new URLSearchParams(window.location.search);
             const preActId = params.get('activity_id');
             if (preActId) {
@@ -156,19 +148,35 @@
             }
         });
 
+        async function loadAktivitasOptions() {
+            try {
+                const res = await fetch('/aktivitas/data', { headers: { 'Accept': 'application/json' } });
+                if (res.ok) {
+                    const data = await res.json();
+                    aktivitasList = Array.isArray(data) ? data : (data.data || []);
+                }
+            } catch (e) {
+                console.error('Gagal memuat daftar aktivitas:', e);
+            }
+            populateAktivitasSelects();
+        }
+
         function populateAktivitasSelects() {
-            const activities = Store.getActivities();
             const filterSel = document.getElementById('filterAktivitas');
             const modalSel = document.getElementById('lampiranAktivitasId');
+            const currentFilter = filterSel.value;
 
             filterSel.innerHTML = '<option value="">Semua Aktivitas</option>';
             modalSel.innerHTML = '<option value="">-- Lampiran Umum (Tanpa Aktivitas) --</option>';
 
-            activities.forEach(act => {
-                const opt1 = `<option value="${act.id}">${escapeHtml(act.judul)}</option>`;
-                filterSel.innerHTML += opt1;
-                modalSel.innerHTML += opt1;
+            aktivitasList.forEach(act => {
+                const title = act.judul || act.title || act.nama_aktivitas || `Aktivitas #${act.id}`;
+                const opt = `<option value="${act.id}">${escapeHtml(title)}</option>`;
+                filterSel.innerHTML += opt;
+                modalSel.innerHTML += opt;
             });
+
+            if (currentFilter) filterSel.value = currentFilter;
         }
 
         async function loadLampiranData() {
@@ -201,10 +209,15 @@
             return 'fa-file-alt';
         }
 
+        function resolveAktivitasTitle(item) {
+            if (item.aktivitasJudul) return item.aktivitasJudul;
+            const act = aktivitasList.find(a => Number(a.id) === Number(item.aktivitasId));
+            return act ? (act.judul || act.title || act.nama_aktivitas) : null;
+        }
+
         function renderLampiranTable() {
             const tbody = document.getElementById('tbl-lampiran-body');
             const filterActId = document.getElementById('filterAktivitas').value;
-            const activities = Store.getActivities();
 
             const filtered = filterActId
                 ? lampiranList.filter(item => Number(item.aktivitasId) === Number(filterActId))
@@ -218,9 +231,9 @@
             }
 
             filtered.forEach((item, idx) => {
-                const act = activities.find(a => Number(a.id) === Number(item.aktivitasId));
-                const actBadge = act
-                    ? `<a href="/aktivitas?highlight=${act.id}" style="text-decoration:none; font-size:0.78rem; font-weight:700; background:#eff6ff; color:#2563eb; padding:4px 10px; border-radius:6px; border:1px solid #bfdbfe; display:inline-block;"><i class="fas fa-link"></i> ${escapeHtml(act.judul)}</a>`
+                const actTitle = resolveAktivitasTitle(item);
+                const actBadge = actTitle
+                    ? `<a href="/aktivitas?highlight=${item.aktivitasId}" style="text-decoration:none; font-size:0.78rem; font-weight:700; background:#eff6ff; color:#2563eb; padding:4px 10px; border-radius:6px; border:1px solid #bfdbfe; display:inline-block;"><i class="fas fa-link"></i> ${escapeHtml(actTitle)}</a>`
                     : `<span class="badge badge-secondary">Lampiran Umum</span>`;
 
                 const tgl = item.createdAt
@@ -307,10 +320,10 @@
             formData.append('judul_lampiran', document.getElementById('judulLampiran').value.trim());
 
             const actId = document.getElementById('lampiranAktivitasId').value;
-            if (actId) formData.append('aktivitas_id', actId);
+            formData.append('aktivitas_id', actId || '');
 
             const ket = document.getElementById('lampiranKeterangan').value.trim();
-            if (ket) formData.append('keterangan', ket);
+            formData.append('keterangan', ket || '');
 
             const fileInput = document.getElementById('lampiranFile');
             if (fileInput.files.length > 0) {
@@ -351,8 +364,7 @@
             const item = lampiranList.find(x => Number(x.id) === Number(id));
             if (!item) return;
 
-            const activities = Store.getActivities();
-            const act = activities.find(a => Number(a.id) === Number(item.aktivitasId));
+            const actTitle = resolveAktivitasTitle(item);
             const isImage = ['JPG', 'JPEG', 'PNG'].includes(item.ekstensi);
             const isPdf = item.ekstensi === 'PDF';
 
@@ -371,7 +383,7 @@
                     </div>
                     <div class="pm-detail-item">
                         <div class="pm-detail-label">Aktivitas Terkait</div>
-                        <div class="pm-detail-value">${act ? escapeHtml(act.judul) : 'Lampiran Umum'}</div>
+                        <div class="pm-detail-value">${actTitle ? escapeHtml(actTitle) : 'Lampiran Umum'}</div>
                     </div>
                     <div class="pm-detail-item">
                         <div class="pm-detail-label">Nama Berkas Asli</div>
@@ -402,26 +414,32 @@
             const item = lampiranList.find(x => Number(x.id) === Number(id));
             if (!item) return;
 
-            Store.showConfirm({
-                title: 'Hapus Lampiran?',
-                message: `Apakah Anda yakin ingin menghapus berkas "${escapeHtml(item.judul)}"? File akan dihapus permanen dari penyimpanan.`,
-                icon: 'fas fa-trash-alt',
-                confirmText: 'Ya, Hapus',
-                cancelText: 'Batal',
-                isDanger: true,
-                onConfirm: async () => {
-                    const res = await fetch(`/lampiran/${id}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': LAMPIRAN_CSRF
-                        }
-                    });
-                    if (res.ok) {
-                        await loadLampiranData();
+            const executeDelete = async () => {
+                const res = await fetch(`/lampiran/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': LAMPIRAN_CSRF
                     }
+                });
+                if (res.ok) {
+                    await loadLampiranData();
                 }
-            });
+            };
+
+            if (typeof Store !== 'undefined' && Store.showConfirm) {
+                Store.showConfirm({
+                    title: 'Hapus Lampiran?',
+                    message: `Apakah Anda yakin ingin menghapus berkas "${escapeHtml(item.judul)}"? File akan dihapus permanen dari penyimpanan.`,
+                    icon: 'fas fa-trash-alt',
+                    confirmText: 'Ya, Hapus',
+                    cancelText: 'Batal',
+                    isDanger: true,
+                    onConfirm: executeDelete
+                });
+            } else if (confirm(`Hapus berkas "${item.judul}"?`)) {
+                executeDelete();
+            }
         }
 
         ['lampiranModal', 'viewLampiranModal'].forEach(mId => {

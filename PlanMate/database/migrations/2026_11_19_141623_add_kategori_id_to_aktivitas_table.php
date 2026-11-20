@@ -8,19 +8,23 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('aktivitas', function (Blueprint $table) {
-            $table->foreignId('kategori_id')
-                  ->nullable()
-                  ->constrained('kategoris')
-                  ->nullOnDelete();
-        });
+        if (!Schema::hasColumn('aktivitas', 'kategori_id')) {
+            Schema::table('aktivitas', function (Blueprint $table) {
+                $table->foreignId('kategori_id')
+                      ->nullable()
+                      ->constrained('kategoris')
+                      ->nullOnDelete();
+            });
+        }
     }
 
     public function down(): void
     {
-        Schema::table('aktivitas', function (Blueprint $table) {
-            $table->dropForeign(['kategori_id']);
-            $table->dropColumn('kategori_id');
-        });
+        if (Schema::hasColumn('aktivitas', 'kategori_id')) {
+            Schema::table('aktivitas', function (Blueprint $table) {
+                $table->dropForeign(['kategori_id']);
+                $table->dropColumn('kategori_id');
+            });
+        }
     }
 };

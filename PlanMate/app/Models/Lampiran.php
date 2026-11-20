@@ -25,24 +25,31 @@ class Lampiran extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function aktivitas()
+    {
+        return $this->belongsTo(Aktivitas::class, 'aktivitas_id');
+    }
+
     public function toFrontend(): array
     {
         return [
-            'id'           => $this->id,
-            'aktivitasId'  => $this->aktivitas_id,
-            'judul'        => $this->judul_lampiran,
-            'namaFileAsli' => $this->nama_file_asli,
-            'fileUrl'      => Storage::url($this->path_file),
-            'ekstensi'     => strtoupper($this->ekstensi),
-            'ukuranFile'   => $this->ukuran_file,
-            'keterangan'   => $this->keterangan,
-            'createdAt'    => $this->created_at?->toIso8601String(),
+            'id'             => $this->id,
+            'aktivitasId'    => $this->aktivitas_id,
+            'aktivitasJudul' => $this->aktivitas?->judul,
+            'judul'          => $this->judul_lampiran,
+            'namaFileAsli'   => $this->nama_file_asli,
+            'fileUrl'        => Storage::url($this->path_file),
+            'ekstensi'       => strtoupper($this->ekstensi),
+            'ukuranFile'     => $this->ukuran_file,
+            'keterangan'     => $this->keterangan,
+            'createdAt'      => $this->created_at?->toIso8601String(),
         ];
     }
 
     public static function forFrontend(int $userId): array
     {
-        return static::where('user_id', $userId)
+        return static::with('aktivitas')
+            ->where('user_id', $userId)
             ->latest()
             ->get()
             ->map(fn (self $item) => $item->toFrontend())
