@@ -38,6 +38,10 @@
             <i class="fas fa-bullseye"></i> Target &amp; Goals
         </a>
 
+        <a href="/catatan" class="sidebar-link {{ request()->is('catatan') ? 'active' : '' }}">
+            <i class="fas fa-book-open"></i> Catatan Materi
+        </a>
+
         <a href="/lampiran" class="sidebar-link {{ request()->is('lampiran') ? 'active' : '' }}">
             <i class="fas fa-paperclip"></i> Lampiran Berkas
         </a>
